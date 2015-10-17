@@ -3,7 +3,14 @@ guid: e6c3475dff208c94a949576ffe368b5f
 ModelImporter:
   serializedVersion: 18
   fileIDToRecycleName:
+    100000: polySurface120
+    100002: //RootNode
+    400000: polySurface120
+    400002: //RootNode
+    2300000: polySurface120
+    3300000: polySurface120
     4300000: polySurface120
+    11100000: //RootNode
   materials:
     importMaterials: 0
     materialName: 0
@@ -27,7 +34,7 @@ ModelImporter:
     isReadable: 1
   meshes:
     lODScreenPercentages: []
-    globalScale: 1
+    globalScale: .200000003
     meshCompression: 0
     addColliders: 0
     importBlendShapes: 1

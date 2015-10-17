@@ -3,7 +3,14 @@ guid: e3878f98f414f1a43b6e8ef68ed98a16
 ModelImporter:
   serializedVersion: 18
   fileIDToRecycleName:
+    100000: shrooms1:polySurface18
+    100002: //RootNode
+    400000: shrooms1:polySurface18
+    400002: //RootNode
+    2300000: shrooms1:polySurface18
+    3300000: shrooms1:polySurface18
     4300000: shrooms1:polySurface18
+    11100000: //RootNode
   materials:
     importMaterials: 0
     materialName: 0
@@ -27,7 +34,7 @@ ModelImporter:
     isReadable: 1
   meshes:
     lODScreenPercentages: []
-    globalScale: 1
+    globalScale: .200000003
     meshCompression: 0
     addColliders: 0
     importBlendShapes: 1
