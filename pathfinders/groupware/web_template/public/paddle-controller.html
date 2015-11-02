@@ -1,0 +1,141 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paddle Controller</title>
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script type="text/javascript">
+var vMotion = {};
+vMotion.history = [];
+var moveBuffer = .4; //safety amount for detecting real movement
+var detectionInterval = 50; //only poll every 50 ms
+var gestureMaxDuration = 2000;
+var historyLength = gestureMaxDuration/detectionInterval;
+var regSpeedBar = 3;
+var fastSpeedBar = 8;
+var numStrokes = 0;
+
+$('document').ready(function() {
+	/** based in part on example from: http://www.html5rocks.com/en/tutorials/device/orientation/*/
+	if (window.DeviceOrientationEvent) {
+		console.log("DeviceOrientation is supported");
+	} else {
+		console.log("Device Orientation not supported");
+	}
+	if (window.DeviceMotionEvent) {
+		document.getElementById("status").innerHTML = "Device Motion is supported";
+		window.addEventListener('devicemotion', deviceMotionHandler, false);
+		var fakeEventData = {};
+		fakeEventData.acceleration = {};
+		fakeEventData.interval =.05;
+		fakeEventData.acceleration.z = 100;
+		//window.setInterval(function() { deviceMotionHandler(fakeEventData);}, 300);
+	} else {
+		console.log("Device Motion not supported");
+	}
+});
+
+function deviceMotionHandler(eventData) {
+	info = eventData.interval;
+	document.getElementById("motionInterval").innerHTML = info;
+	
+	var thisInstant = Date.now();
+	if (vMotion.history.length == 0) {
+		writeAcceleration(eventData.acceleration, thisInstant);
+	} else {
+		var acceleration = eventData.acceleration;
+		var thisInterval = thisInstant - vMotion.history[vMotion.history.length-1].time;
+		if (/*thisInterval >= detectionInterval &&*/ Math.abs(acceleration.z) > moveBuffer ) { 
+			if (thisInstant - vMotion.history[0].time > gestureMaxDuration) { //keep gesture time within 2 secs
+				vMotion.history = [];
+			}
+			/*if (vMotion.history.length == historyLength) {
+				vMotion.history.shift();
+			}*/
+
+			writeAcceleration(acceleration, thisInstant);
+			checkForGesture();
+		}
+	}
+	
+	// Grab the rotation rate from the results
+	/*var rotation = eventData.rotationRate;
+	info = xyz.replace("X", rotation.alpha);
+	info = info.replace("Y", rotation.beta);
+	info = info.replace("Z", rotation.gamma);
+	document.getElementById("moRotation").innerHTML = info;*/
+
+}
+
+function writeAcceleration(acceleration, thisInstant) {
+	var currVMove = {};
+	if (acceleration.z >= 0)
+		currVMove.move = "u";
+	else
+		currVMove.move = "d";
+	currVMove.time = thisInstant; 
+	vMotion.history.push(currVMove);
+}
+
+function checkForGesture() {
+	var histString = '';
+	for (var i = 0; i < vMotion.history.length; i++) {
+		histString += vMotion.history[i].move;	
+	}
+	document.getElementById("gestureString").innerHTML = histString;
+	var strokePattern = /d{3,20}u{3,20}/;
+	var foundIndex = histString.search(strokePattern);
+	if (foundIndex > -1) {
+		numStrokes++;
+		document.getElementById("stroke").innerHTML = numStrokes;	
+		var matches = strokePattern.exec(histString);
+		var stopIndex = matches[0].length;
+		var firstMatchMove = vMotion.history[foundIndex];
+		var lastMatchMove = vMotion.history[foundIndex + stopIndex -1];
+		var moveDuration = lastMatchMove.time - firstMatchMove.time;
+		document.getElementById("strokeTime").innerHTML = moveDuration;
+		moveSpeed = (gestureMaxDuration - moveDuration) / gestureMaxDuration;
+		console.log('TODO: send game speed information');
+		vMotion.history = [];
+	}	
+}
+
+function altMapping(acceleration) {
+	var absMove = Math.abs(acceleration.z);
+	if (absMove < regSpeedBar) {
+		if (acceleration.z >= 0)
+			move = "a";
+		else
+			move = "d";
+	}
+	else if (absMove >= regSpeedBar && absMove < fastSpeedBar) {
+		if (acceleration.z >= 0)
+			move = "b";
+		else
+			move = "e";		
+	}
+	else if (absMove >= fastSpeedBar) {
+		if (acceleration.z >= 0)
+			move = "c";
+		else
+			move = "f";		
+	}
+	return move;	
+	
+	//var strokePattern = /[def]{4,20}[abcdef]+[abc]{4,20}/;
+}
+
+</script>
+</head>
+<body>
+<div class="main">
+    <p id="status"></p>
+    <p>Motion Interval<span id="motionInterval"></span></p>
+    <p>Gesture: <span id="gestureString"></span></p>
+    <h3 id="stroke"></h3>
+    <p>Stroke time: <span id="strokeTime"></span></p>
+</div>
+</body>
+</html>
+
