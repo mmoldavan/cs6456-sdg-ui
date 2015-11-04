@@ -15,11 +15,14 @@ public class BoatUserControl : MonoBehaviour
 	private Animator leftOarAnimator,
 		rightOarAnimator;
 
+	private Transform camera;
+
 	void Start()
 	{  
 		rb = GetComponent<Rigidbody>();
 		leftOarAnimator = transform.Find("LeftOar").GetComponent<Animator> ();
 		rightOarAnimator = transform.Find("RightOar").GetComponent<Animator> ();
+		camera = transform.parent.Find ("MainCamera");
 		//BCMessenger.Instance.RegisterListener("connect", 0, this.gameObject, "HandleConnection");      
 		//BCMessenger.Instance.RegisterListener("start_race", 0, this.gameObject, "HandleStartRace");  
 	}
@@ -36,7 +39,7 @@ public class BoatUserControl : MonoBehaviour
 		if (leftPaddlePressed) {
 
 			//this.transform.Rotate (new Vector3 (0, -1, 0));
-			rb.AddTorque(transform.up * -torque * rowSpeed, ForceMode.Acceleration);
+			rb.AddTorque(transform.up * torque * rowSpeed, ForceMode.Acceleration);
 			leftOarAnimator.SetFloat ("RowSpeed", 0.2f);
 		} else {
 			leftOarAnimator.SetFloat ("RowSpeed", 0.0f);
@@ -44,12 +47,13 @@ public class BoatUserControl : MonoBehaviour
 
 		if (rightPaddlePressed) {
 			//this.transform.Rotate (new Vector3(0,1,0));
-			rb.AddTorque(transform.up * torque * rowSpeed, ForceMode.Acceleration);
+			rb.AddTorque(transform.up * -torque * rowSpeed, ForceMode.Acceleration);
 			rightOarAnimator.SetFloat ("RowSpeed", 0.2f);
 		} else {
 			rightOarAnimator.SetFloat ("RowSpeed", 0.0f);
 		}
 
+		camera.transform.position = this.transform.position + new Vector3 (0, 5, -5);
 		//Vector3 movement = new Vector3 (moveHorizontal, 0.0f, moveVertical);
 
 		//rb.AddRelativeForce (movement * speed);
