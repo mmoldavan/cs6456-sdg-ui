@@ -6,6 +6,7 @@ using BladeCast;
 public class BoatUserControl : MonoBehaviour 
 {
 	public float speed;
+	public float torque;
 	
 	private Rigidbody rb;
 
@@ -17,8 +18,8 @@ public class BoatUserControl : MonoBehaviour
 	void Start()
 	{  
 		rb = GetComponent<Rigidbody>();
-		leftOarAnimator = transform.Find("Oar2").GetComponent<Animator> ();
-		rightOarAnimator = transform.Find("Oar1").GetComponent<Animator> ();
+		leftOarAnimator = transform.Find("LeftOar").GetComponent<Animator> ();
+		rightOarAnimator = transform.Find("RightOar").GetComponent<Animator> ();
 		//BCMessenger.Instance.RegisterListener("connect", 0, this.gameObject, "HandleConnection");      
 		//BCMessenger.Instance.RegisterListener("start_race", 0, this.gameObject, "HandleStartRace");  
 	}
@@ -26,31 +27,34 @@ public class BoatUserControl : MonoBehaviour
 	// Update is called once per frame
 	void Update () 
 	{
-		float moveHorizontal = Input.GetAxis ("Horizontal");
-		float moveVertical = Input.GetAxis ("Vertical");
+		//float moveHorizontal = Input.GetAxis ("Horizontal");
+		//float moveVertical = Input.GetAxis ("Vertical");
 		bool leftPaddlePressed = Input.GetKeyDown (KeyCode.N);
 		bool rightPaddlePressed = Input.GetKeyDown (KeyCode.M);
+		float rowSpeed = 1.0f;
 
 		if (leftPaddlePressed) {
-			this.transform.Rotate (new Vector3 (0, -1, 0));
-			leftOarAnimator.SetBool ("SlowRow", true);
+
+			//this.transform.Rotate (new Vector3 (0, -1, 0));
+			rb.AddTorque(transform.up * -torque * rowSpeed, ForceMode.Acceleration);
+			leftOarAnimator.SetFloat ("RowSpeed", 0.2f);
 		} else {
-			leftOarAnimator.SetBool ("SlowRow", false);
+			leftOarAnimator.SetFloat ("RowSpeed", 0.0f);
 		}
 
 		if (rightPaddlePressed) {
-			this.transform.Rotate (new Vector3(0,1,0));
-			rightOarAnimator.SetBool ("SlowRow", true);
+			//this.transform.Rotate (new Vector3(0,1,0));
+			rb.AddTorque(transform.up * torque * rowSpeed, ForceMode.Acceleration);
+			rightOarAnimator.SetFloat ("RowSpeed", 0.2f);
 		} else {
-			rightOarAnimator.SetBool ("SlowRow", false);
+			rightOarAnimator.SetFloat ("RowSpeed", 0.0f);
 		}
 
-		Vector3 movement = new Vector3 (moveHorizontal, 0.0f, moveVertical);
+		//Vector3 movement = new Vector3 (moveHorizontal, 0.0f, moveVertical);
 
-		Debug.Log (movement);
-		rb.AddRelativeForce (movement * speed);
+		//rb.AddRelativeForce (movement * speed);
 	}
-
+	
 	// message handlers...
 	private void HandleConnection(ControllerMessage msg)
 	{
