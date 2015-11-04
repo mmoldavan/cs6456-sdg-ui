@@ -11,9 +11,14 @@ public class BoatUserControl : MonoBehaviour
 
 	private List<Player>         m_players = new List<Player> ();
 
+	private Animator leftOarAnimator,
+		rightOarAnimator;
+
 	void Start()
 	{  
 		rb = GetComponent<Rigidbody>();
+		leftOarAnimator = transform.Find("Oar2").GetComponent<Animator> ();
+		rightOarAnimator = transform.Find("Oar1").GetComponent<Animator> ();
 		//BCMessenger.Instance.RegisterListener("connect", 0, this.gameObject, "HandleConnection");      
 		//BCMessenger.Instance.RegisterListener("start_race", 0, this.gameObject, "HandleStartRace");  
 	}
@@ -27,14 +32,20 @@ public class BoatUserControl : MonoBehaviour
 		bool rightPaddlePressed = Input.GetKeyDown (KeyCode.M);
 
 		if (leftPaddlePressed) {
-			this.transform.Rotate (new Vector3(0,0,-1));
+			this.transform.Rotate (new Vector3 (0, -1, 0));
+			leftOarAnimator.SetBool ("SlowRow", true);
+		} else {
+			leftOarAnimator.SetBool ("SlowRow", false);
 		}
 
 		if (rightPaddlePressed) {
-			this.transform.Rotate (new Vector3(0,0,1));
+			this.transform.Rotate (new Vector3(0,1,0));
+			rightOarAnimator.SetBool ("SlowRow", true);
+		} else {
+			rightOarAnimator.SetBool ("SlowRow", false);
 		}
 
-		Vector3 movement = new Vector3 (moveHorizontal, -moveVertical, 0.0f);
+		Vector3 movement = new Vector3 (moveHorizontal, 0.0f, moveVertical);
 
 		Debug.Log (movement);
 		rb.AddRelativeForce (movement * speed);
