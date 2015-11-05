@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections.Generic;
 using Utility;
 using BladeCast;
@@ -8,6 +9,7 @@ public class BoatUserControl : MonoBehaviour
 	public float speed;
 	public float torque;
 	public bool enableKeyboardInput;
+	public UIController uiController;
 	
 	private Rigidbody rb;
 
@@ -32,9 +34,11 @@ public class BoatUserControl : MonoBehaviour
 		private Animator leftOarAnimator, rightOarAnimator, boatAnimator;
 		private Rigidbody rb;
 		private float baseSpeed;
+		private BoatUserControl userControl;
 
-		public PaddleInput(Rigidbody rb, Animator leftOar, Animator rightOar, Animator boat, float speed){
+		public PaddleInput(BoatUserControl userControl, Rigidbody rb, Animator leftOar, Animator rightOar, Animator boat, float speed){
 			this.active = false;
+			this.userControl = userControl;
 			this.leftOarAnimator = leftOar;
 			this.rightOarAnimator = rightOar;
 			this.boatAnimator = boat;
@@ -52,12 +56,14 @@ public class BoatUserControl : MonoBehaviour
 							paddleForward (paddleSpeed, speed);
 						}
 						active = false;
+						userControl.notifyUIofPaddle(player, paddleBuffer);
 					}
 				} else {
 					active = true;
 					initiatingPlayer = player;
 					pressTime = Time.time;
 					paddleSpeed = speed;
+					userControl.notifyUIofPaddle(player, paddleBuffer);
 				}
 			}
 		}
@@ -77,27 +83,27 @@ public class BoatUserControl : MonoBehaviour
 		}
 
 		public void paddleForward(float leftSpeed, float rightSpeed) {
-			Debug.Log ("move forward");
-			Vector3 movement = new Vector3 (1.0f, 1.0f, 1.0f);//(leftSpeed + rightSpeed) / 2);
-
 			boatAnimator.SetTrigger ("MoveForward");
-			//rb.AddRelativeForce (movement * baseSpeed);
-			paddleLeft (leftSpeed);
-			paddleRight (rightSpeed);
+			leftOarAnimator.SetTrigger ("RowSlow");
+			rightOarAnimator.SetTrigger ("RowSlow");
 		}
 
 		public void paddleLeft(float speed) {
-			Debug.Log ("move left");
-			//leftOarAnimator.SetFloat ("RowSpeed", speed);
 			leftOarAnimator.SetTrigger ("RowSlow");
 			boatAnimator.SetTrigger ("MoveLeft");
 		}
 
 		public void paddleRight(float speed) {
-			Debug.Log ("move right");
-			//rightOarAnimator.SetFloat ("RowSpeed", speed);
 			rightOarAnimator.SetTrigger ("RowSlow");
 			boatAnimator.SetTrigger ("MoveRight");
+		}
+	}
+
+	public void notifyUIofPaddle(PlayerRole player, float buffer) {
+		if (player == PlayerRole.LEFTPADDLER) {
+			uiController.addTextFader ("LeftPaddle", Time.time, buffer);
+		} else {
+			uiController.addTextFader ("RightPaddle", Time.time, buffer);
 		}
 	}
 
@@ -125,7 +131,7 @@ public class BoatUserControl : MonoBehaviour
 		BCMessenger.Instance.RegisterListener("jump", 0, this.gameObject, "HandleJump");  
 
 		//Set up possible actions.
-		paddleInput = new PaddleInput (rb, leftOarAnimator, rightOarAnimator, boatAnimator, speed);
+		paddleInput = new PaddleInput (this, rb, leftOarAnimator, rightOarAnimator, boatAnimator, speed);
 		jumpInput = new JumpInput ();
 	}
 	

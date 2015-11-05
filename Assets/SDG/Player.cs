@@ -32,7 +32,7 @@ public class Player : MonoBehaviour
 	
 	void Start()
 	{
-		BCMessenger.Instance.RegisterListener("go_action", 0, this.gameObject, "HandleGoAction");
+		//BCMessenger.Instance.RegisterListener("go_action", 0, this.gameObject, "HandleGoAction");
 		IsInPlay = false;
 	}
 	
