@@ -1,23 +1,185 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-	<title>Template</title>
-	<link rel="stylesheet" href="/css/style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paddle Controller</title>
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script type="text/javascript">
+var vMotion = {};
+vMotion.history = [];
+var moveBuffer = 2; //degrees, safety amount for detecting real movement
+var gestureMaxDuration = 1000;
+var jumping = false;
+
+$('document').ready(function() {
+	/*if (window.DeviceOrientationEvent) {
+		console.log("DeviceOrientation is supported");
+	} else {
+		console.log("Device Orientation not supported");
+	}*/
+	if (window.DeviceOrientationEvent) {
+		document.getElementById("status").innerHTML = "Device Orientation is supported";
+		window.addEventListener('deviceorientation', deviceOrientHandler, false);
+		window.navigator.vibrate(200);
+		var fakeEventData = {};
+		//fakeEventData.rotationRate = {};
+		//fakeEventData.interval =.05;
+		fakeEventData.gamma = 100;
+		/*for (var i = 0; i < 10; i++) {
+			(function(j){setTimeout(function(){deviceOrientHandler(fakeEventData);},j*500);}(i));
+		}*/
+		//window.setInterval(function() { deviceOrientHandler(fakeEventData);}, 500);
+	} else {
+		console.log("Device Motion not supported");
+	}
+});
+
+function deviceOrientHandler(eventData) {	
+	var thisInstant = Date.now();
+	var gammaVal = (-1)*(eventData.gamma); //reverse it so directions match perceptual logic
+	
+	//check strokes
+	if (vMotion.history.length == 0) {
+		writeMove(gammaVal, thisInstant);
+	} else {
+		var prevPoint = vMotion.history[vMotion.history.length-1];
+		var thisInterval = thisInstant - prevPoint.time;
+		console.log(prevPoint);
+		if (Math.abs(gammaVal-prevPoint.val) > moveBuffer ) { 
+			var newStartIndex = vMotion.history.length-1;
+			while(newStartIndex > 0 && thisInstant - vMotion.history[newStartIndex].time < gestureMaxDuration ) {
+				newStartIndex--;
+			}
+			vMotion.history = vMotion.history.slice(newStartIndex);
+			writeMove(gammaVal, thisInstant);
+			checkForGesture();
+		}
+	}
+	
+	//check jumps
+	var alphaVal = eventData.beta;
+	//document.getElementById("jumpingVal").innerHTML = eventData.beta;
+	if (alphaVal >= 60 || alphaVal <= -60 && !jumping) {
+		//init jump
+		jumping = true;
+		var sendNotification = {};
+		sendNotification.type = "connection";
+		sendNotification.action = "jump";
+		sendNotification.value = "start";
+		//TODO: send jumping info
+		console.log(sendNotification);
+		document.getElementById("jumping").innerHTML = "jumping!";
+	} else if (alphaVal < 60 && alphaVal > -60 && jumping) {
+		jumping = false;
+		var sendNotification = {};
+		sendNotification.type = "connection";
+		sendNotification.action = "jump";
+		sendNotification.value = "end";
+		console.log("TODO: send jumping info");
+		document.getElementById("jumping").innerHTML = "NOT";
+	}
+}
+
+function writeMove(val, thisInstant) {
+	var currMove = {};
+	currMove.time = thisInstant;
+	currMove.val = val;
+	console.log(currMove);
+	if (vMotion.history.length > 0) {
+		var prevPoint = vMotion.history[vMotion.history.length-1].val; //get last move's value
+		if (prevPoint >= 0) {
+			if (currMove.val < 0)
+				currMove.move = "d";
+			else { //gamma is still pos
+				if (currMove.val > prevPoint) {
+					currMove.move = "u";	
+				} else if (currMove.val == prevPoint) {
+					currMove.move = "s"; //for still, because of buffer shouldn't be possible
+				} else { //must be less so moving down
+					currMove.move = "d";
+				}
+			}
+		} else { //prevPoint was less than 0
+			if (currMove.val > 0)
+				currMove.move = "u";
+			else { //gamma is still neg
+				if (prevPoint < currMove.val) {
+					currMove.move = "u";	
+				} else if (prevPoint == currMove.val) {
+					currMove.move = "s";	
+				} else { //prevPoint must be greater, so we're moving down
+					currMove.move = "d";
+				}
+			}			
+		}		
+	} else {
+		currMove.move = "z" //placeholder for initial read point	
+	}
+	vMotion.history.push(currMove);
+	console.log(vMotion.history);
+}
+
+function checkForGesture() {
+	var histString = '';
+	for (var i = 0; i < vMotion.history.length; i++) {
+		histString += vMotion.history[i].move;	
+	}
+	document.getElementById("gestureString").innerHTML = histString;
+	var strokePattern = /u{4,30}d{3,30}/;
+	var foundIndex = histString.search(strokePattern);
+	if (foundIndex > -1) {
+		var matches = strokePattern.exec(histString);
+		var stopIndex = matches[0].length-1;
+		var firstMatchMove = vMotion.history[foundIndex];
+		var lastMatchMove = vMotion.history[foundIndex + stopIndex];
+		var moveDuration = lastMatchMove.time - firstMatchMove.time;
+		document.getElementById("strokeTime").innerHTML += " "+ moveDuration;
+		moveSpeed = (gestureMaxDuration - moveDuration) / gestureMaxDuration;
+		console.log('TODO: send game speed information');
+		vMotion.history = [];
+	}
+	/*else {
+		document.getElementById("strokeTime").innerHTML = "no match";	
+	}*/
+}
+
+function altMapping(acceleration) {
+	var absMove = Math.abs(acceleration.z);
+	if (absMove < regSpeedBar) {
+		if (acceleration.z >= 0)
+			move = "a";
+		else
+			move = "d";
+	}
+	else if (absMove >= regSpeedBar && absMove < fastSpeedBar) {
+		if (acceleration.z >= 0)
+			move = "b";
+		else
+			move = "e";		
+	}
+	else if (absMove >= fastSpeedBar) {
+		if (acceleration.z >= 0)
+			move = "c";
+		else
+			move = "f";		
+	}
+	return move;	
+	
+	//var strokePattern = /[def]{4,20}[abcdef]+[abc]{4,20}/;
+}
+
+</script>
 </head>
 <body>
-	<form>
-    	<button type="input" id="forward" class="control" value=".50">Forward</button>
-        <button type="input" id="back" class="control" value=".50">Backward</button>
-    </form>
-	
-	<!-- Required javascript libraries. Add your own libraries here. -->
-	<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
-	<script src="/socket.io/socket.io.js"></script>
-	<script src="/lib/connection.js"></script>
-
-	<!-- Load your controller's javascript here. -->
-	<script src="/js/controllerManager.js"></script>
+<div class="main">
+    <p id="status"></p>
+    <p>Vibration: <span id="vibStatus"></span></p>
+    <p>Gesture: <span id="gestureString"></span></p>
+    <h3 id="stroke"></h3>
+    <p>Stroke time: <span id="strokeTime"></span></p>
+    <p>Jumping: <span id="jumping"></span></p>
+</div>
 </body>
 </html>
+
