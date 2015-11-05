@@ -36,6 +36,9 @@ public class BoatUserControl : MonoBehaviour
 		bool rightPaddlePressed = Input.GetKeyDown (KeyCode.M);
 		float rowSpeed = 1.0f;
 
+		if (leftOarAnimator.GetCurrentAnimatorStateInfo().IsName("Inactive")){
+
+		}
 		if (leftPaddlePressed) {
 
 			//this.transform.Rotate (new Vector3 (0, -1, 0));
@@ -46,14 +49,14 @@ public class BoatUserControl : MonoBehaviour
 		}
 
 		if (rightPaddlePressed) {
-			//this.transform.Rotate (new Vector3(0,1,0));
+			//this.transform.Rotate (new Vector3(0,1,0));nn
 			rb.AddTorque(transform.up * -torque * rowSpeed, ForceMode.Acceleration);
 			rightOarAnimator.SetFloat ("RowSpeed", 0.2f);
 		} else {
 			rightOarAnimator.SetFloat ("RowSpeed", 0.0f);
 		}
 
-		camera.transform.position = this.transform.position + new Vector3 (0, 5, -5);
+		camera.transform.position = this.transform.position + new Vector3 (0f, 8f, -5.5f);
 		//Vector3 movement = new Vector3 (moveHorizontal, 0.0f, moveVertical);
 
 		//rb.AddRelativeForce (movement * speed);
