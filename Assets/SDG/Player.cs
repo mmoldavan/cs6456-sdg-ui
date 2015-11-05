@@ -12,11 +12,17 @@ using System.Collections;
 using System;
 using BladeCast;
 
+public enum PlayerRole {
+	LEFTPADDLER = 1,
+	RIGHTPADDLER = 2,
+	NAVIGATOR = 3
+}
 
 public class Player : MonoBehaviour
 {
 	public float    k_thrust;               // The thrust given for  button hits
 	public Color[] 	m_controlColors = new Color[4];
+	public PlayerRole role;
 	
 	// the racer can race... (not post race, etc)
 	public bool     IsInPlay { get;  set; }
