@@ -7,6 +7,7 @@ public class BoatUserControl : MonoBehaviour
 {
 	public float speed;
 	public float torque;
+	public bool enableKeyboardInput;
 	
 	private Rigidbody rb;
 
@@ -26,18 +27,29 @@ public class BoatUserControl : MonoBehaviour
 	}
 
 	private class PaddleInput: PendingInput {
-		public float paddleBuffer = 5.0f;
+		public float paddleBuffer = 0.5f;
 		public float paddleSpeed; 
+		private Animator leftOarAnimator, rightOarAnimator;
+		private Rigidbody rb;
+		private float baseSpeed;
 
-		public PaddleInput(){
-			active = false;
+		public PaddleInput(Rigidbody rb, Animator leftOar, Animator rightOar, float speed){
+			this.active = false;
+			this.leftOarAnimator = leftOar;
+			this.rightOarAnimator = rightOar;
+			this.baseSpeed = speed;
+			this.rb = rb;
 		}
 
 		public void motionReceived(PlayerRole player, float speed) {
 			if (player < PlayerRole.NAVIGATOR) {
 				if (active) {
 					if (player != initiatingPlayer) {
-						paddleForward ();
+						if(player == PlayerRole.LEFTPADDLER) {
+							paddleForward (speed, paddleSpeed);
+						} else {
+							paddleForward (paddleSpeed, speed);
+						}
 						active = false;
 					}
 				} else {
@@ -58,28 +70,39 @@ public class BoatUserControl : MonoBehaviour
 					else {
 						paddleRight(paddleSpeed);
 					}
+					active = false;
 				}
 			}
 		}
 
 		public void paddleForward(float leftSpeed, float rightSpeed) {
 			Vector3 movement = new Vector3 (0.0f, 0.0f, (leftSpeed + rightSpeed / 2));
-			
-			rb.AddRelativeForce (movement * speed);
-			paddleLeft (float leftSpeed);
-			paddleRight (float rightSpeed);
+
+			rb.AddRelativeForce (movement * baseSpeed);
+			paddleLeft (leftSpeed);
+			paddleRight (rightSpeed);
 		}
 
 		public void paddleLeft(float speed) {
-			leftOarAnimator.SetFloat ("RowSpeed", speed);
+			Debug.Log ("move left:");
+			//leftOarAnimator.SetFloat ("RowSpeed", speed);
+			leftOarAnimator.SetTrigger ("RowSlow");
 		}
 
 		public void paddleRight(float speed) {
-			rightOarAnimator.SetFloat ("RowSpeed", speed);
+			Debug.Log ("move right:");
+			//rightOarAnimator.SetFloat ("RowSpeed", speed);
+			rightOarAnimator.SetTrigger ("RowSlow");
 		}
 	}
 
 	private class JumpInput: PendingInput {
+		public void motionReceived(PlayerRole player, float speed) {
+
+		}
+		public void update() {
+
+		}
 	}
 
 	//Animation Event Handlers
@@ -110,7 +133,7 @@ public class BoatUserControl : MonoBehaviour
 		BCMessenger.Instance.RegisterListener("jump", 0, this.gameObject, "HandleJump");  
 
 		//Set up possible actions.
-		paddleInput = new PaddleInput ();
+		paddleInput = new PaddleInput (rb, leftOarAnimator, rightOarAnimator, speed);
 		jumpInput = new JumpInput ();
 	}
 	
@@ -119,6 +142,15 @@ public class BoatUserControl : MonoBehaviour
 	{
 		paddleInput.update ();
 		jumpInput.update ();
+
+		if (enableKeyboardInput) {
+			if(Input.GetKeyDown(KeyCode.N)) {
+				paddleInput.motionReceived(PlayerRole.LEFTPADDLER, 0.3f);
+			}
+			if(Input.GetKeyDown(KeyCode.M)) {
+				paddleInput.motionReceived(PlayerRole.RIGHTPADDLER, 0.3f);
+			}
+		}
 
 		camera.transform.position = this.transform.position + new Vector3 (0f, 8f, -5.5f);
 	}
@@ -143,7 +175,7 @@ public class BoatUserControl : MonoBehaviour
 
 		if (player != null) 
 		{
-			paddleInput.motionReceived(player.role)
+			paddleInput.motionReceived(player.role, 0.3f);
 		}
 	}
 
