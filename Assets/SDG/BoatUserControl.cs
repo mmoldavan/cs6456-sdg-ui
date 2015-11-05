@@ -13,7 +13,7 @@ public class BoatUserControl : MonoBehaviour
 
 	private List<Player>         m_players = new List<Player> ();
 
-	private Animator leftOarAnimator, rightOarAnimator;
+	private Animator leftOarAnimator, rightOarAnimator, boatAnimator;
 
 	private Transform camera;
 
@@ -29,14 +29,15 @@ public class BoatUserControl : MonoBehaviour
 	private class PaddleInput: PendingInput {
 		public float paddleBuffer = 0.5f;
 		public float paddleSpeed; 
-		private Animator leftOarAnimator, rightOarAnimator;
+		private Animator leftOarAnimator, rightOarAnimator, boatAnimator;
 		private Rigidbody rb;
 		private float baseSpeed;
 
-		public PaddleInput(Rigidbody rb, Animator leftOar, Animator rightOar, float speed){
+		public PaddleInput(Rigidbody rb, Animator leftOar, Animator rightOar, Animator boat, float speed){
 			this.active = false;
 			this.leftOarAnimator = leftOar;
 			this.rightOarAnimator = rightOar;
+			this.boatAnimator = boat;
 			this.baseSpeed = speed;
 			this.rb = rb;
 		}
@@ -76,23 +77,27 @@ public class BoatUserControl : MonoBehaviour
 		}
 
 		public void paddleForward(float leftSpeed, float rightSpeed) {
-			Vector3 movement = new Vector3 (0.0f, 0.0f, (leftSpeed + rightSpeed / 2));
+			Debug.Log ("move forward");
+			Vector3 movement = new Vector3 (1.0f, 1.0f, 1.0f);//(leftSpeed + rightSpeed) / 2);
 
-			rb.AddRelativeForce (movement * baseSpeed);
+			boatAnimator.SetTrigger ("MoveForward");
+			//rb.AddRelativeForce (movement * baseSpeed);
 			paddleLeft (leftSpeed);
 			paddleRight (rightSpeed);
 		}
 
 		public void paddleLeft(float speed) {
-			Debug.Log ("move left:");
+			Debug.Log ("move left");
 			//leftOarAnimator.SetFloat ("RowSpeed", speed);
 			leftOarAnimator.SetTrigger ("RowSlow");
+			boatAnimator.SetTrigger ("MoveLeft");
 		}
 
 		public void paddleRight(float speed) {
-			Debug.Log ("move right:");
+			Debug.Log ("move right");
 			//rightOarAnimator.SetFloat ("RowSpeed", speed);
 			rightOarAnimator.SetTrigger ("RowSlow");
+			boatAnimator.SetTrigger ("MoveRight");
 		}
 	}
 
@@ -105,26 +110,13 @@ public class BoatUserControl : MonoBehaviour
 		}
 	}
 
-	//Animation Event Handlers
-	public void leftOarApplyRotation(){
-		rb.AddTorque(transform.up * torque * 1, ForceMode.Acceleration);
-	}
-	public void rightOarApplyRotation(){
-		rb.AddTorque(transform.up * -torque * 1, ForceMode.Acceleration);
-	}
-	public void leftOarApplyForward(){
-
-	}
-	public void rightOarApplyForward(){
-
-	}
-
 	//Game Init
 	void Start()
 	{  
 		rb = GetComponent<Rigidbody>();
 		leftOarAnimator = transform.Find("LeftOar").GetComponent<Animator> ();
 		rightOarAnimator = transform.Find("RightOar").GetComponent<Animator> ();
+		boatAnimator = GetComponent<Animator> ();
 		camera = transform.parent.Find ("MainCamera");
 
 		//Set up EAPathFinder listeners
@@ -133,7 +125,7 @@ public class BoatUserControl : MonoBehaviour
 		BCMessenger.Instance.RegisterListener("jump", 0, this.gameObject, "HandleJump");  
 
 		//Set up possible actions.
-		paddleInput = new PaddleInput (rb, leftOarAnimator, rightOarAnimator, speed);
+		paddleInput = new PaddleInput (rb, leftOarAnimator, rightOarAnimator, boatAnimator, speed);
 		jumpInput = new JumpInput ();
 	}
 	

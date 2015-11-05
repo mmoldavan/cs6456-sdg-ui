@@ -23,10 +23,10 @@ public class WaterSplash : MonoBehaviour {
 
 	//Animation Event Handlers
 	public void leftOarApplyRotation(){
-		rb.AddTorque(transform.right * boatControl.torque * 1, ForceMode.Acceleration);
+		//rb.AddTorque(transform.right * boatControl.torque * 1, ForceMode.Acceleration);
 	}
 	public void rightOarApplyRotation(){
-		rb.AddTorque(transform.right * -boatControl.torque * 1, ForceMode.Acceleration);
+		//rb.AddTorque(transform.right * -boatControl.torque * 1, ForceMode.Acceleration);
 	}
 	public void leftOarApplyForward(){
 		
