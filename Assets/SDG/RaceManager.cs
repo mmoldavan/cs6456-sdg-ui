@@ -7,7 +7,7 @@ public class RaceManager : MonoBehaviour {
 	public List<Beacon> beacons;
 
 	private int currentBeaconPos;
-	private Beacon currentBeacon;
+	public Beacon currentBeacon;
 
 	private float lapStartTime;
 	private float bestLapTime;
