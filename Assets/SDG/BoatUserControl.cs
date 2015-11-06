@@ -6,21 +6,19 @@ using BladeCast;
 
 public class BoatUserControl : MonoBehaviour 
 {
+	//Vars set in Unity
 	public float speed;
 	public float torque;
 	public bool enableKeyboardInput;
 	public UIController uiController;
-	
-	private Rigidbody rb;
 
 	private List<Player>         m_players = new List<Player> ();
-
 	private Animator leftOarAnimator, rightOarAnimator, boatAnimator;
 
-	private Transform camera;
-
+	//Input Handlers
 	private PaddleInput paddleInput;
 	private JumpInput jumpInput;
+	private NavigatorInput navigatorInput;
 
 	private class PendingInput {
 		public float pressTime;
@@ -32,18 +30,14 @@ public class BoatUserControl : MonoBehaviour
 		public float paddleBuffer = 0.5f;
 		public float paddleSpeed; 
 		private Animator leftOarAnimator, rightOarAnimator, boatAnimator;
-		private Rigidbody rb;
-		private float baseSpeed;
 		private BoatUserControl userControl;
 
-		public PaddleInput(BoatUserControl userControl, Rigidbody rb, Animator leftOar, Animator rightOar, Animator boat, float speed){
+		public PaddleInput(BoatUserControl userControl){
 			this.active = false;
 			this.userControl = userControl;
-			this.leftOarAnimator = leftOar;
-			this.rightOarAnimator = rightOar;
-			this.boatAnimator = boat;
-			this.baseSpeed = speed;
-			this.rb = rb;
+			this.leftOarAnimator = userControl.leftOarAnimator;
+			this.rightOarAnimator = userControl.rightOarAnimator;
+			this.boatAnimator = userControl.boatAnimator;
 		}
 
 		public void motionReceived(PlayerRole player, float speed) {
@@ -115,6 +109,9 @@ public class BoatUserControl : MonoBehaviour
 	}
 
 	private class JumpInput: PendingInput {
+		public JumpInput(BoatUserControl userControl){
+		}
+
 		public void motionReceived(PlayerRole player, float speed) {
 
 		}
@@ -123,14 +120,26 @@ public class BoatUserControl : MonoBehaviour
 		}
 	}
 
+	private class NavigatorInput: PendingInput {
+		public NavigatorInput(BoatUserControl userControl){
+		}
+
+		public void motionReceived(PlayerRole player, float speed) {
+			
+		}
+		public void update() {
+			
+		}
+	}
+
 	//Game Init
 	void Start()
 	{  
-		rb = GetComponent<Rigidbody>();
+		//rb = GetComponent<Rigidbody>();
 		leftOarAnimator = transform.Find("LeftOar").GetComponent<Animator> ();
 		rightOarAnimator = transform.Find("RightOar").GetComponent<Animator> ();
 		boatAnimator = GetComponent<Animator> ();
-		camera = transform.parent.Find ("MainCamera");
+		//camera = transform.parent.Find ("MainCamera");
 
 		//Set up EAPathFinder listeners
 		BCMessenger.Instance.RegisterListener("connect", 0, this.gameObject, "HandleConnection");      
@@ -138,8 +147,9 @@ public class BoatUserControl : MonoBehaviour
 		BCMessenger.Instance.RegisterListener("jump", 0, this.gameObject, "HandleJump");  
 
 		//Set up possible actions.
-		paddleInput = new PaddleInput (this, rb, leftOarAnimator, rightOarAnimator, boatAnimator, speed);
-		jumpInput = new JumpInput ();
+		paddleInput = new PaddleInput (this);
+		jumpInput = new JumpInput (this);
+		navigatorInput = new NavigatorInput (this);
 	}
 	
 	// Update is called once per frame

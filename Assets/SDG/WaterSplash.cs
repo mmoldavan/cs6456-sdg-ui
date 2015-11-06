@@ -2,12 +2,9 @@
 using System.Collections;
 
 public class WaterSplash : MonoBehaviour {
-
-	private Rigidbody rb;
 	public BoatUserControl boatControl;
 	// Use this for initialization
 	void Start () {
-		rb = this.GetComponentInParent<Rigidbody> ();
 
 	}
 	
