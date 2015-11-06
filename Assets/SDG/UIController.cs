@@ -34,6 +34,7 @@ public class UIController : MonoBehaviour {
 	}
 
 	public void Update() {
+		updateLapTimer ();
 		foreach (TextFader fader in currentFaders.FindAll (x => x.active == true)) {
 			float timeDiff = (Time.time - fader.startTime) / fader.fadeTime;
 			if (timeDiff > fader.fadeTime) {
@@ -54,5 +55,13 @@ public class UIController : MonoBehaviour {
 			currentFaders.Remove(fader);
 		}
 
+	}
+
+	public void updateLapTimer() {
+		Text timer = uiCanvas.transform.Find ("Timer/Timer").GetComponent<Text> ();
+		float time = Time.time;
+		int minutes = Mathf.FloorToInt(time / 60F);
+		int seconds = Mathf.FloorToInt(time % 60);
+		timer.text = string.Format("{0:00}:{1:00}", minutes, seconds);
 	}
 }

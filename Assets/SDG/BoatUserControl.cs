@@ -83,27 +83,34 @@ public class BoatUserControl : MonoBehaviour
 		}
 
 		public void paddleForward(float leftSpeed, float rightSpeed) {
+			boatAnimator.SetFloat ("RowSpeed", (leftSpeed + rightSpeed) / 2);
 			boatAnimator.SetTrigger ("MoveForward");
+			leftOarAnimator.SetFloat ("RowSpeed", leftSpeed);
 			leftOarAnimator.SetTrigger ("RowSlow");
+			rightOarAnimator.SetFloat ("RowSpeed", rightSpeed);
 			rightOarAnimator.SetTrigger ("RowSlow");
 		}
 
 		public void paddleLeft(float speed) {
+			leftOarAnimator.SetFloat ("RowSpeed", speed);
 			leftOarAnimator.SetTrigger ("RowSlow");
+			boatAnimator.SetFloat ("RowSpeed", speed);
 			boatAnimator.SetTrigger ("MoveLeft");
 		}
 
 		public void paddleRight(float speed) {
+			rightOarAnimator.SetFloat ("RowSpeed", speed);
 			rightOarAnimator.SetTrigger ("RowSlow");
+			boatAnimator.SetFloat ("RowSpeed", speed);
 			boatAnimator.SetTrigger ("MoveRight");
 		}
 	}
 
 	public void notifyUIofPaddle(PlayerRole player, float buffer) {
 		if (player == PlayerRole.LEFTPADDLER) {
-			uiController.addTextFader ("LeftPaddle", Time.time, buffer);
+			uiController.addTextFader ("LeftPlayer/LeftPaddle", Time.time, buffer);
 		} else {
-			uiController.addTextFader ("RightPaddle", Time.time, buffer);
+			uiController.addTextFader ("RightPlayer/RightPaddle", Time.time, buffer);
 		}
 	}
 
@@ -143,10 +150,10 @@ public class BoatUserControl : MonoBehaviour
 
 		if (enableKeyboardInput) {
 			if(Input.GetKeyDown(KeyCode.N)) {
-				paddleInput.motionReceived(PlayerRole.LEFTPADDLER, 0.3f);
+				paddleInput.motionReceived(PlayerRole.LEFTPADDLER, 1.0f);
 			}
 			if(Input.GetKeyDown(KeyCode.M)) {
-				paddleInput.motionReceived(PlayerRole.RIGHTPADDLER, 0.3f);
+				paddleInput.motionReceived(PlayerRole.RIGHTPADDLER, 1.0f);
 			}
 		}
 
