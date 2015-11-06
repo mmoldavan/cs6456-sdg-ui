@@ -102,9 +102,9 @@ public class BoatUserControl : MonoBehaviour
 
 	public void notifyUIofPaddle(PlayerRole player, float buffer) {
 		if (player == PlayerRole.LEFTPADDLER) {
-			uiController.addTextFader ("LeftPlayer/LeftPaddle", Time.time, buffer);
+			uiController.addActionTextFader ("LeftPlayer/LeftPaddle", Time.time, buffer);
 		} else {
-			uiController.addTextFader ("RightPlayer/RightPaddle", Time.time, buffer);
+			uiController.addActionTextFader ("RightPlayer/RightPaddle", Time.time, buffer);
 		}
 	}
 
