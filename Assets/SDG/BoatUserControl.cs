@@ -143,7 +143,7 @@ public class BoatUserControl : MonoBehaviour
 
 		//Set up EAPathFinder listeners
 		BCMessenger.Instance.RegisterListener("connect", 0, this.gameObject, "HandleConnection");      
-		BCMessenger.Instance.RegisterListener("stroke", 0, this.gameObject, "HandlePaddleStoke");  
+		BCMessenger.Instance.RegisterListener("stroke", 0, this.gameObject, "HandlePaddleStroke");  
 		BCMessenger.Instance.RegisterListener("jump", 0, this.gameObject, "HandleJump");  
 
 		//Set up possible actions.
@@ -174,8 +174,9 @@ public class BoatUserControl : MonoBehaviour
 	private void HandleConnection(ControllerMessage msg)
 	{
 		// index of new hand
-		int controllerIndex = msg.ControllerSource;     
-		
+		int controllerIndex = msg.ControllerSource; 
+		Debug.Log (controllerIndex);
+
 		Player player = m_players.Find (x => x.ControllerIndex == controllerIndex);
 		if (player == null) 
 		{
@@ -188,15 +189,33 @@ public class BoatUserControl : MonoBehaviour
 		int controllerIndex = msg.ControllerSource;     
 		Player player = m_players.Find (x => x.ControllerIndex == controllerIndex);
 
+		Debug.Log (msg.Payload);
+		Debug.Log (player);
+
 		if (player != null) 
 		{
-			paddleInput.motionReceived(player.role, 0.3f);
+			paddleInput.motionReceived(player.role, 1.0f);
+		}
+	}
+
+	private void HandleJump(ControllerMessage msg)
+	{
+		int controllerIndex = msg.ControllerSource;     
+		Player player = m_players.Find (x => x.ControllerIndex == controllerIndex);
+		
+		Debug.Log (msg.Payload);
+		
+		if (player != null) 
+		{
+			paddleInput.motionReceived(player.role, 1.0f);
 		}
 	}
 
 	private Player CreatePlayer(int controllerIndex)
 	{
 		Player player = new Player();
+		player.ControllerIndex = controllerIndex;
+		Debug.Log (player);
 
 		if (m_players.Find (x => x.role == PlayerRole.LEFTPADDLER) == null) {
 			player.role = PlayerRole.LEFTPADDLER;

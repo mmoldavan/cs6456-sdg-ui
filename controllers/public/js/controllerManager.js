@@ -87,7 +87,7 @@ function deviceOrientHandler(eventData) {
 		//init jump
 		jumping = true;
 		var sendNotification = {};
-		sendNotification.type = "connection";
+		sendNotification.type = "jump";
 		sendNotification.action = "jump";
 		sendNotification.value = "start";
 		conn.sendMessage(sendNotification);
@@ -96,7 +96,7 @@ function deviceOrientHandler(eventData) {
 	} else if (alphaVal < 60 && alphaVal > -60 && jumping) {
 		jumping = false;
 		var sendNotification = {};
-		sendNotification.type = "connection";
+		sendNotification.type = "jump";
 		sendNotification.action = "jump";
 		sendNotification.value = "end";
 		conn.sendMessage(sendNotification);
@@ -172,7 +172,7 @@ function checkForGesture() {
 		else
 			moveSpeedCat = 0.25;		 
 		var sendNotification = {};
-		sendNotification.type = "connection";
+		sendNotification.type = "stroke";
 		sendNotification.action = "stroke";
 		sendNotification.value = moveSpeedCat;
 		conn.sendMessage(sendNotification);
