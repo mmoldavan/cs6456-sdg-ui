@@ -157,7 +157,7 @@ public class BoatUserControl : MonoBehaviour
 			}
 		}
 
-		camera.transform.position = this.transform.position + new Vector3 (0f, 8f, -5.5f);
+		//camera.transform.position = this.transform.position + new Vector3 (0f, 7f, -9f);
 	}
 	
 	// message handlers...
