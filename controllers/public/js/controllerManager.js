@@ -145,13 +145,12 @@ function writeMove(val, thisInstant) {
 
 function checkForGesture() {
 	//adapts the SiGeR method for recognizing a particular rotation sequence 
-	var histString = '';
-	if (debugMode) {
-		for (var i = 0; i < vMotion.history.length; i++) {
-			histString += vMotion.history[i].move;	
-		}
-		$('#gestureString').text(histString);
+	var histString = '';	
+	for (var i = 0; i < vMotion.history.length; i++) {
+			histString += vMotion.history[i].move;
 	}
+	if (debugMode)
+		$('#gestureString').text(histString);
 	var strokePattern = /u{4,30}d{3,30}/;
 	var foundIndex = histString.search(strokePattern);
 	if (foundIndex > -1) {
