@@ -42,7 +42,7 @@ $(document).ready(function () {
 			(function(j){setTimeout(function(){deviceOrientHandler(fakeEventData);},j*500);}(i));
 		}*/
 	} else {
-		$('#orientStatus').text("Device Orientation not supported and is required for this game.");
+		alert("Device Orientation not supported and is required for this controller.");
 	}
 
 	//INIT..
@@ -53,9 +53,8 @@ $(document).ready(function () {
 	$(document).on("game_message", function (e, message) {
 		console.log("Received Message: " + JSON.stringify(message));
 		var payload = message.payload;
-		switch (payload.type) {
-			//your code here
-		}
+		if (payload.type == "jump_initiated" && vibrationSupport)
+			navigator.vibrate(200);
 	});
 });
 

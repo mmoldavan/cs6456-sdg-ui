@@ -11,12 +11,16 @@
 var concurrentTouches = 0;
 var currentTimer;
 var currentTimerActive = false;
+var vibrationSupport = false;
 
 $(document).ready(function () {
 	//see which player and state our role
 	var resultObj = /\d*$/.exec(window.location);
 	player = resultObj[0];
 	$('#player').text("P"+player+" - Paddler");
+	
+	if ('vibrate' in navigator)
+		vibrationSupport = true;
 	
 	/* STROKE and JUMP */
 	//mobile - there is 300ms delay on click, so have to use touchstart/end
@@ -50,9 +54,8 @@ $(document).ready(function () {
 	$(document).on("game_message", function (e, message) {
 		console.log("Received Message: " + JSON.stringify(message));
 		var payload = message.payload;
-		switch (payload.type) {
-			//your code here
-		}
+		if (payload.type == "jump_initiated" && vibrationSupport)
+			navigator.vibrate(200);
 	});
 });
 
