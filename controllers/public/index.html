@@ -3,44 +3,20 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-	<title>Template</title>
-	<link rel="stylesheet" href="/css/style.css">
+	<title>Controllers Home</title>
     <style>
-	 svg { height:95%; position:absolute; top: 10; left:0; }
-	 .badge { margin:0; padding: 10px; font-size:2em; }
-	 #player { position:absolute; top:0; left:20px; background-color:#61AAE5; color:#F8F71B;}
-	 .directions { position:absolute; top:0; right: 0; background-color: #CCCCCC; color:#DD6769; }
-	 .directions.bottom { bottom:0; top: auto; }
-	 .debug-output { position:absolute; top: 10; left: 10; border: 1px solid red; background-color:#fff; margin:0; padding:5px; }
-	 .debug-output li { margin-left: 0; list-style-position:inside;}
+	 ul { margin: 0; padding: 0 }
+	 li a { display:block; margin: 0; list-style:none; padding:20px; width: 90%; background: linear-gradient(#61AAE5, #67a0ce); color:#fff; text-decoration:none;}
+	 li { margin-bottom: 10px; }
+	 a.alt-option { background: linear-gradient(#92e8dd, #8cd9cf); padding:10px; color:#333;}
 	</style>
 </head>
 <body>
-	<p class="badge" id="player"></p>
-    <p class="badge directions">>></p>
-    <p class="badge directions bottom">>></p>
-	<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 144 360">
-		<path fill="#9B8579" stroke="#000000" stroke-miterlimit="10" d="M98.1,354.5H49.8c-2,0-3.6-1.6-3.6-3.6v-96.4c0-2,1.6-3.6,3.6-3.6
-		h48.3c2,0,3.6,1.6,3.6,3.6v96.4C101.7,352.9,100.1,354.5,98.1,354.5z"/>
-		<rect x="70.5" y="5.5" fill="#9B8579" stroke="#000000" stroke-miterlimit="10" width="6.9" height="264.8"/>
-		<path fill="#9B8579" stroke="#000000" stroke-miterlimit="10" d="M78.3,23.3h-8.6c-2,0-3.6-1.6-3.6-3.6V9.1c0-2,1.6-3.6,3.6-3.6h8.6
-		c2,0,3.6,1.6,3.6,3.6v10.6C81.9,21.7,80.2,23.3,78.3,23.3z"/>
-    </svg>
-    <ul class="debug-output">
-        <li id="orientStatus"></li>
-        <li id="vibStatus"></li>
-        <li>Gesture: <span id="gestureString"></span></li>
-        <li>Stroke time: <span id="strokeTime"></span></li>
-        <li>Jumping: <span id="jumping"></span></p>
+    <ul>
+        <li><a href="/paddle/1">Player 1 - Paddler Synergy</a> <a class="alt-option" href="/paddle-button/1">(OR Button Option)</a></li>
+        <li><a href="/paddle/2">Player 2 - Paddler Synergy</a> <a class="alt-option" href="/paddle-button/2">(OR Button Option)</a></li>
+        <li><a href="/paddle-button/1">Player 1 - Paddler Complementary</a> <a class="alt-option" href="/paddle/2">(OR Tilt Option)</a></li>
+        <li><a href="/rudder/2">Player 2 - Navigator Complementary</a></li>
     </ul>
-
-	
-	<!-- Required javascript libraries. Add your own libraries here. -->
-	<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
-	<script src="/socket.io/socket.io.js"></script>
-	<script src="/lib/connection.js"></script>
-
-	<!-- Load your controller's javascript here. -->
-	<script src="/js/controllerManager.js"></script>
 </body>
 </html>

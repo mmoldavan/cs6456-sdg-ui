@@ -1,5 +1,5 @@
 /* 
-* PADDLE CONTROLLER - SYNERGY, PHYSICAL
+* PADDLE CONTROLLER - COMPLEMENTARY, TOUCH
 * Created by Rachel Sheketoff referencing EA PATHFINDERS example
 * EA PATHFINDERS API
 * Copyright (C) 2015 Electronic Arts Inc.  All rights reserved. 
@@ -37,7 +37,6 @@ $(document).ready(function () {
 			sendNotification.type = "jump";
 			sendNotification.value = "end";
 			conn.sendMessage(sendNotification);
-			console.log(sendNotification);
 		}
 		concurrentTouches--;
 		$(this).removeClass('pressing');
@@ -66,7 +65,6 @@ function execActionType(whichButton) {
 		sendNotification.type = "jump";
 		sendNotification.value = "start";
 		conn.sendMessage(sendNotification);
-		console.log(sendNotification);
 	} else {
 		var sendNotification = {};
 		sendNotification.type = "stroke";
@@ -74,8 +72,7 @@ function execActionType(whichButton) {
 			sendNotification.value = "up";
 		else
 			sendNotification.value = "down";
-		conn.sendMessage(sendNotification);
-		console.log(sendNotification);	
+		conn.sendMessage(sendNotification);	
 	}	
 	
 } 

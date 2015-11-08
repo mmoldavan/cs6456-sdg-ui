@@ -69,7 +69,6 @@ function deviceOrientHandler(eventData) {
 	} else {
 		var prevPoint = vMotion.history[vMotion.history.length-1];
 		var thisInterval = thisInstant - prevPoint.time;
-		console.log(prevPoint);
 		if (Math.abs(gammaVal-prevPoint.val) > moveBuffer ) { 
 			var newStartIndex = vMotion.history.length-1;
 			while(newStartIndex > 0 && thisInstant - vMotion.history[newStartIndex].time < gestureMaxDuration ) {
@@ -91,7 +90,6 @@ function deviceOrientHandler(eventData) {
 		sendNotification.action = "jump";
 		sendNotification.value = "start";
 		conn.sendMessage(sendNotification);
-		console.log(sendNotification);
 		$('#jumping').text("jumping!");
 	} else if (alphaVal < 60 && alphaVal > -60 && jumping) {
 		jumping = false;
@@ -100,7 +98,6 @@ function deviceOrientHandler(eventData) {
 		sendNotification.action = "jump";
 		sendNotification.value = "end";
 		conn.sendMessage(sendNotification);
-		console.log(sendNotification);
 		$('#jumping').text("NOT jumping!");
 	}
 }
@@ -109,7 +106,6 @@ function writeMove(val, thisInstant) {
 	var currMove = {};
 	currMove.time = thisInstant;
 	currMove.val = val;
-	console.log(currMove);
 	if (vMotion.history.length > 0) {
 		var prevPoint = vMotion.history[vMotion.history.length-1].val; //get last move's value
 		if (prevPoint >= 0) {
@@ -175,7 +171,6 @@ function checkForGesture() {
 		sendNotification.action = "stroke";
 		sendNotification.value = moveSpeedCat;
 		conn.sendMessage(sendNotification);
-		console.log(sendNotification);
 		//once we've recognized the first stroke, this whole history can be reset
 		vMotion.history = [];
 	}
