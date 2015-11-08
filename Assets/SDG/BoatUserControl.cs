@@ -20,6 +20,25 @@ public class BoatUserControl : MonoBehaviour
 	private JumpInput jumpInput;
 	private NavigatorInput navigatorInput;
 
+	private Queue<BoatAction> pendingActions;
+
+	enum SyncBoatAction {
+		PaddleForward = 1,
+		PaddleLeft = 2,
+		PaddleRight = 3
+	}
+
+	enum AsyncBoatAction {
+		NavigateLeft = 1,
+		NavigateRight = 2,
+		Jump = 3
+	}
+
+	private class BoatAction {
+		public SyncBoatAction action;
+		public AsyncBoatAction otherAction;
+	}
+
 	private class PendingInput {
 		public float pressTime;
 		public PlayerRole initiatingPlayer;
@@ -78,7 +97,7 @@ public class BoatUserControl : MonoBehaviour
 
 		public void paddleForward(float leftSpeed, float rightSpeed) {
 			boatAnimator.SetFloat ("RowSpeed", (leftSpeed + rightSpeed) / 2);
-			boatAnimator.SetTrigger ("MoveForward");
+			boatAnimator.SetBool ("MoveForward", true);
 			leftOarAnimator.SetFloat ("RowSpeed", leftSpeed);
 			leftOarAnimator.SetTrigger ("RowSlow");
 			rightOarAnimator.SetFloat ("RowSpeed", rightSpeed);
@@ -98,6 +117,14 @@ public class BoatUserControl : MonoBehaviour
 			boatAnimator.SetFloat ("RowSpeed", speed);
 			boatAnimator.SetTrigger ("MoveRight");
 		}
+	}
+
+	public void addAction() {
+
+	}
+
+	public void addAsyncAction() {
+
 	}
 
 	public void notifyUIofPaddle(PlayerRole player, float buffer) {
