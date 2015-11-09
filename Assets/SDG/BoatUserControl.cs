@@ -279,6 +279,21 @@ public class BoatUserControl : MonoBehaviour
 			player.role = PlayerRole.NAVIGATOR;
 
 		}
+
+	}
+
+	private void HandleNavDirection(ControllerMessage msg)
+	{
+		int controllerIndex = msg.ControllerSource;     
+		Player player = m_players.Find (x => x.ControllerIndex == controllerIndex);
+		
+		Debug.Log (msg.Payload);
+		
+		if (player != null) 
+		{
+			player.role = PlayerRole.NAVIGATOR;
+			navigatorInput.motionReceived(player.role, 1.0f);
+		}
 	}
 
 	private Player CreatePlayer(int controllerIndex)
