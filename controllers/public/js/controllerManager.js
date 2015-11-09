@@ -42,7 +42,7 @@ $(document).ready(function () {
 			(function(j){setTimeout(function(){deviceOrientHandler(fakeEventData);},j*500);}(i));
 		}*/
 	} else {
-		$('#orientStatus').text("Device Orientation not supported and is required for this game.");
+		alert("Device Orientation not supported and is required for this controller.");
 	}
 
 	//INIT..
@@ -53,9 +53,8 @@ $(document).ready(function () {
 	$(document).on("game_message", function (e, message) {
 		console.log("Received Message: " + JSON.stringify(message));
 		var payload = message.payload;
-		switch (payload.type) {
-			//your code here
-		}
+		if (payload.type == "jump_initiated" && vibrationSupport)
+			navigator.vibrate(200);
 	});
 });
 
@@ -69,7 +68,6 @@ function deviceOrientHandler(eventData) {
 	} else {
 		var prevPoint = vMotion.history[vMotion.history.length-1];
 		var thisInterval = thisInstant - prevPoint.time;
-		console.log(prevPoint);
 		if (Math.abs(gammaVal-prevPoint.val) > moveBuffer ) { 
 			var newStartIndex = vMotion.history.length-1;
 			while(newStartIndex > 0 && thisInstant - vMotion.history[newStartIndex].time < gestureMaxDuration ) {
@@ -91,7 +89,6 @@ function deviceOrientHandler(eventData) {
 		sendNotification.action = "jump";
 		sendNotification.value = "start";
 		conn.sendMessage(sendNotification);
-		console.log(sendNotification);
 		$('#jumping').text("jumping!");
 	} else if (alphaVal < 60 && alphaVal > -60 && jumping) {
 		jumping = false;
@@ -100,7 +97,6 @@ function deviceOrientHandler(eventData) {
 		sendNotification.action = "jump";
 		sendNotification.value = "end";
 		conn.sendMessage(sendNotification);
-		console.log(sendNotification);
 		$('#jumping').text("NOT jumping!");
 	}
 }
@@ -109,7 +105,6 @@ function writeMove(val, thisInstant) {
 	var currMove = {};
 	currMove.time = thisInstant;
 	currMove.val = val;
-	console.log(currMove);
 	if (vMotion.history.length > 0) {
 		var prevPoint = vMotion.history[vMotion.history.length-1].val; //get last move's value
 		if (prevPoint >= 0) {
@@ -145,13 +140,12 @@ function writeMove(val, thisInstant) {
 
 function checkForGesture() {
 	//adapts the SiGeR method for recognizing a particular rotation sequence 
-	var histString = '';
-	if (debugMode) {
-		for (var i = 0; i < vMotion.history.length; i++) {
-			histString += vMotion.history[i].move;	
-		}
-		$('#gestureString').text(histString);
+	var histString = '';	
+	for (var i = 0; i < vMotion.history.length; i++) {
+			histString += vMotion.history[i].move;
 	}
+	if (debugMode)
+		$('#gestureString').text(histString);
 	var strokePattern = /u{4,30}d{3,30}/;
 	var foundIndex = histString.search(strokePattern);
 	if (foundIndex > -1) {
@@ -176,7 +170,6 @@ function checkForGesture() {
 		sendNotification.action = "stroke";
 		sendNotification.value = moveSpeedCat;
 		conn.sendMessage(sendNotification);
-		console.log(sendNotification);
 		//once we've recognized the first stroke, this whole history can be reset
 		vMotion.history = [];
 	}

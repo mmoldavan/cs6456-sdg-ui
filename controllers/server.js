@@ -48,9 +48,22 @@ setInterval(function() {
 
 app.use(express.static(__dirname + '/public'));
 
-app.get('/*', function (req, res) {
+app.get('/', function (req, res) {
 	res.sendFile(path.join(__dirname+'/public/index.html'));
 });
+
+app.get('/paddle/*', function (req, res) {
+	res.sendFile(path.join(__dirname+'/public/paddle.html'));
+});
+
+app.get('/rudder/*', function (req, res) {
+	res.sendFile(path.join(__dirname+'/public/rudder.html'));
+});
+
+app.get('/paddle-button/*', function (req, res) {
+	res.sendFile(path.join(__dirname+'/public/paddle-button.html'));
+});
+
 
 io.on('connection', function(socket) {
 	console.log("[Connection] Socket " + socket.id);
