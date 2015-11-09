@@ -17,7 +17,6 @@ public class ArrowTargeting : MonoBehaviour {
 		//this.transform.rotation = Quaternion.LookRotation (position, Vector3.up);
 
 		targetOrienter.LookAt (beacon.position);
-		Debug.Log (targetOrienter.localEulerAngles);
 		arrow.eulerAngles = new Vector3(0.0f, 0.0f, (360 - targetOrienter.localEulerAngles.y) - 90);
 	}
 }

@@ -27,8 +27,12 @@ public class BoatUserControl : MonoBehaviour
 
 	public float currentRotationSpeed;
 	public float currentForwardSpeed;
+	public float nextForwardSpeed; //For Lerping between the speeds on transition
+	public float forwardTransitionStartTime;
 	public float leftPaddleSpeed;
 	public float rightPaddleSpeed;
+
+	public float animationTransitionTime = 0.33f;
 
 	private class PendingInput {
 		public float pressTime;
@@ -37,30 +41,30 @@ public class BoatUserControl : MonoBehaviour
 	}
 
 	private class PaddleInput: PendingInput {
-		private Animator leftOarAnimator, rightOarAnimator, boatAnimator;
 		private BoatUserControl userControl;
 
 		public PaddleInput(BoatUserControl userControl){
 			this.active = false;
 			this.userControl = userControl;
-			this.leftOarAnimator = userControl.leftOarAnimator;
-			this.rightOarAnimator = userControl.rightOarAnimator;
-			this.boatAnimator = userControl.boatAnimator;
 		}
 
 		public void motionReceived(PlayerRole player, float speed) {
 			if (player == PlayerRole.LEFTPADDLER) {
 				userControl.nextLeftAction = speed;
+				userControl.notifyUIofPaddle(player, 0.5f);
 				if(userControl.leftPaddleSpeed == 0.0f) {
 					userControl.doNextLeftOarAction();
 				}
 			} else if (player == PlayerRole.RIGHTPADDLER) {
 				userControl.nextRightAction = speed;
+				userControl.notifyUIofPaddle(player, 0.5f);
 				if(userControl.rightPaddleSpeed == 0.0f) {
+
 					userControl.doNextRightOarAction();
 				}
 			} else if (player == PlayerRole.FULLPADDLER) {
 				userControl.nextFullAction = speed;
+				userControl.notifyUIofPaddle(player, 0.5f);
 				if(userControl.rightPaddleSpeed == 0.0f) {
 					userControl.doNextFullOarAction();
 				}
@@ -71,7 +75,7 @@ public class BoatUserControl : MonoBehaviour
 	public void updateAnimators () {
 		boatAnimator.SetFloat ("ForwardSpeed", currentForwardSpeed);
 		boatAnimator.SetFloat ("RotationSpeed", currentRotationSpeed);
-		
+		boatAnimator.SetFloat ("AnimationSpeed", Mathf.Max (currentForwardSpeed, Mathf.Abs(currentRotationSpeed)));
 		leftOarAnimator.SetFloat ("RowSpeed", leftPaddleSpeed);
 		rightOarAnimator.SetFloat ("RowSpeed", rightPaddleSpeed);
 	}
@@ -99,8 +103,26 @@ public class BoatUserControl : MonoBehaviour
 	}
 
 	public void updateBoatSpeeds () {
-		currentForwardSpeed = (leftPaddleSpeed + rightPaddleSpeed) / 2;
-		currentRotationSpeed =  leftPaddleSpeed - rightPaddleSpeed;
+		nextForwardSpeed = (leftPaddleSpeed + rightPaddleSpeed) / 2;
+		forwardTransitionStartTime = Time.time;
+		currentRotationSpeed =  rightPaddleSpeed - leftPaddleSpeed;
+	}
+
+	public void updateForwardSpeed() {
+		if (nextForwardSpeed >= 0.0f) {
+			float timeSinceTranstitionStart = Time.time - forwardTransitionStartTime;
+			float lerpTime = timeSinceTranstitionStart / animationTransitionTime;
+			if(lerpTime > 1.0f) {
+				boatAnimator.SetFloat("ForwardSpeed", nextForwardSpeed);
+				currentForwardSpeed = nextForwardSpeed;
+				nextForwardSpeed = -1.0f;
+			}
+			else {
+				float newForwardValue = Mathf.Lerp(currentForwardSpeed,nextForwardSpeed,lerpTime);
+				boatAnimator.SetFloat("ForwardSpeed", Mathf.Lerp(currentForwardSpeed,nextForwardSpeed,lerpTime));
+				boatAnimator.SetFloat ("AnimationSpeed", Mathf.Max (newForwardValue, Mathf.Abs(currentRotationSpeed)));
+			}
+		}
 	}
 
 	public void notifyUIofPaddle(PlayerRole player, float buffer) {
@@ -147,6 +169,8 @@ public class BoatUserControl : MonoBehaviour
 		BCMessenger.Instance.RegisterListener("connect", 0, this.gameObject, "HandleConnection");      
 		BCMessenger.Instance.RegisterListener("stroke", 0, this.gameObject, "HandlePaddleStroke");  
 		BCMessenger.Instance.RegisterListener("jump", 0, this.gameObject, "HandleJump");  
+		BCMessenger.Instance.RegisterListener("direction", 0, this.gameObject, "HandleNavDirection");  
+		BCMessenger.Instance.RegisterListener("role_change", 0, this.gameObject, "HandleRoleChange");  
 
 		//Set up possible actions.
 		paddleInput = new PaddleInput (this);
@@ -158,6 +182,10 @@ public class BoatUserControl : MonoBehaviour
 		currentRotationSpeed = 0.0f;
 		leftPaddleSpeed = 0.0f;
 		rightPaddleSpeed = 0.0f;
+		nextLeftAction = 0.0f;
+		nextRightAction = 0.0f;
+		nextFullAction = 0.0f;
+		nextNavigationAction = 0.0f;
 	}
 	
 	// Update is called once per frame
@@ -174,7 +202,7 @@ public class BoatUserControl : MonoBehaviour
 			}
 		}
 
-		//camera.transform.position = this.transform.position + new Vector3 (0f, 7f, -9f);
+		updateForwardSpeed ();
 	}
 	
 	// message handlers...
@@ -215,6 +243,20 @@ public class BoatUserControl : MonoBehaviour
 		if (player != null) 
 		{
 			paddleInput.motionReceived(player.role, 1.0f);
+		}
+	}
+
+	private void HandleRoleChange(ControllerMessage msg)
+	{
+		int controllerIndex = msg.ControllerSource;     
+		Player player = m_players.Find (x => x.ControllerIndex == controllerIndex);
+		
+		Debug.Log (msg.Payload);
+		
+		if (player != null) 
+		{
+			player.role = PlayerRole.NAVIGATOR;
+
 		}
 	}
 
