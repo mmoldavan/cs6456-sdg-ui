@@ -20,24 +20,15 @@ public class BoatUserControl : MonoBehaviour
 	private JumpInput jumpInput;
 	private NavigatorInput navigatorInput;
 
-	private Queue<BoatAction> pendingActions;
+	private float nextLeftAction;
+	private float nextRightAction;
+	private float nextFullAction;
+	private float nextNavigationAction;
 
-	enum SyncBoatAction {
-		PaddleForward = 1,
-		PaddleLeft = 2,
-		PaddleRight = 3
-	}
-
-	enum AsyncBoatAction {
-		NavigateLeft = 1,
-		NavigateRight = 2,
-		Jump = 3
-	}
-
-	private class BoatAction {
-		public SyncBoatAction action;
-		public AsyncBoatAction otherAction;
-	}
+	public float currentRotationSpeed;
+	public float currentForwardSpeed;
+	public float leftPaddleSpeed;
+	public float rightPaddleSpeed;
 
 	private class PendingInput {
 		public float pressTime;
@@ -46,8 +37,6 @@ public class BoatUserControl : MonoBehaviour
 	}
 
 	private class PaddleInput: PendingInput {
-		public float paddleBuffer = 0.5f;
-		public float paddleSpeed; 
 		private Animator leftOarAnimator, rightOarAnimator, boatAnimator;
 		private BoatUserControl userControl;
 
@@ -60,71 +49,58 @@ public class BoatUserControl : MonoBehaviour
 		}
 
 		public void motionReceived(PlayerRole player, float speed) {
-			if (player < PlayerRole.NAVIGATOR) {
-				if (active) {
-					if (player != initiatingPlayer) {
-						if(player == PlayerRole.LEFTPADDLER) {
-							paddleForward (speed, paddleSpeed);
-						} else {
-							paddleForward (paddleSpeed, speed);
-						}
-						active = false;
-						userControl.notifyUIofPaddle(player, paddleBuffer);
-					}
-				} else {
-					active = true;
-					initiatingPlayer = player;
-					pressTime = Time.time;
-					paddleSpeed = speed;
-					userControl.notifyUIofPaddle(player, paddleBuffer);
+			if (player == PlayerRole.LEFTPADDLER) {
+				userControl.nextLeftAction = speed;
+				if(userControl.leftPaddleSpeed == 0.0f) {
+					userControl.doNextLeftOarAction();
+				}
+			} else if (player == PlayerRole.RIGHTPADDLER) {
+				userControl.nextRightAction = speed;
+				if(userControl.rightPaddleSpeed == 0.0f) {
+					userControl.doNextRightOarAction();
+				}
+			} else if (player == PlayerRole.FULLPADDLER) {
+				userControl.nextFullAction = speed;
+				if(userControl.rightPaddleSpeed == 0.0f) {
+					userControl.doNextFullOarAction();
 				}
 			}
 		}
-
-		public void update() {
-			if (active) {
-				if (pressTime < Time.time - paddleBuffer) {
-					if (initiatingPlayer == PlayerRole.LEFTPADDLER) {
-						paddleLeft(paddleSpeed);
-					}
-					else {
-						paddleRight(paddleSpeed);
-					}
-					active = false;
-				}
-			}
-		}
-
-		public void paddleForward(float leftSpeed, float rightSpeed) {
-			boatAnimator.SetFloat ("RowSpeed", (leftSpeed + rightSpeed) / 2);
-			boatAnimator.SetBool ("MoveForward", true);
-			leftOarAnimator.SetFloat ("RowSpeed", leftSpeed);
-			leftOarAnimator.SetTrigger ("RowSlow");
-			rightOarAnimator.SetFloat ("RowSpeed", rightSpeed);
-			rightOarAnimator.SetTrigger ("RowSlow");
-		}
-
-		public void paddleLeft(float speed) {
-			leftOarAnimator.SetFloat ("RowSpeed", speed);
-			leftOarAnimator.SetTrigger ("RowSlow");
-			boatAnimator.SetFloat ("RowSpeed", speed);
-			boatAnimator.SetTrigger ("MoveLeft");
-		}
-
-		public void paddleRight(float speed) {
-			rightOarAnimator.SetFloat ("RowSpeed", speed);
-			rightOarAnimator.SetTrigger ("RowSlow");
-			boatAnimator.SetFloat ("RowSpeed", speed);
-			boatAnimator.SetTrigger ("MoveRight");
-		}
 	}
 
-	public void addAction() {
-
+	public void updateAnimators () {
+		boatAnimator.SetFloat ("ForwardSpeed", currentForwardSpeed);
+		boatAnimator.SetFloat ("RotationSpeed", currentRotationSpeed);
+		
+		leftOarAnimator.SetFloat ("RowSpeed", leftPaddleSpeed);
+		rightOarAnimator.SetFloat ("RowSpeed", rightPaddleSpeed);
 	}
 
-	public void addAsyncAction() {
+	public void doNextLeftOarAction() {
+		leftPaddleSpeed = nextLeftAction;
+		nextLeftAction = 0f;
+		updateBoatSpeeds ();
+		updateAnimators ();
+	}
 
+	public void doNextRightOarAction() {
+		rightPaddleSpeed = nextRightAction;
+		nextRightAction = 0f;
+		updateBoatSpeeds ();
+		updateAnimators ();
+	}
+
+	public void doNextFullOarAction() {
+		rightPaddleSpeed = nextFullAction;
+		leftPaddleSpeed = nextFullAction;
+		nextRightAction = 0f;
+		updateBoatSpeeds ();
+		updateAnimators ();
+	}
+
+	public void updateBoatSpeeds () {
+		currentForwardSpeed = (leftPaddleSpeed + rightPaddleSpeed) / 2;
+		currentRotationSpeed =  leftPaddleSpeed - rightPaddleSpeed;
 	}
 
 	public void notifyUIofPaddle(PlayerRole player, float buffer) {
@@ -166,7 +142,6 @@ public class BoatUserControl : MonoBehaviour
 		leftOarAnimator = transform.Find("LeftOar").GetComponent<Animator> ();
 		rightOarAnimator = transform.Find("RightOar").GetComponent<Animator> ();
 		boatAnimator = GetComponent<Animator> ();
-		//camera = transform.parent.Find ("MainCamera");
 
 		//Set up EAPathFinder listeners
 		BCMessenger.Instance.RegisterListener("connect", 0, this.gameObject, "HandleConnection");      
@@ -177,12 +152,17 @@ public class BoatUserControl : MonoBehaviour
 		paddleInput = new PaddleInput (this);
 		jumpInput = new JumpInput (this);
 		navigatorInput = new NavigatorInput (this);
+
+		//init speeds
+		currentForwardSpeed = 0.0f;
+		currentRotationSpeed = 0.0f;
+		leftPaddleSpeed = 0.0f;
+		rightPaddleSpeed = 0.0f;
 	}
 	
 	// Update is called once per frame
 	void Update () 
 	{
-		paddleInput.update ();
 		jumpInput.update ();
 
 		if (enableKeyboardInput) {

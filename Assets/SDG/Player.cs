@@ -6,7 +6,8 @@ using BladeCast;
 public enum PlayerRole {
 	LEFTPADDLER = 1,
 	RIGHTPADDLER = 2,
-	NAVIGATOR = 3
+	FULLPADDLER = 3,
+	NAVIGATOR = 4
 }
 
 public class Player
