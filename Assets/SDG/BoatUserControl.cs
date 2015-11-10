@@ -15,6 +15,7 @@ public class BoatUserControl : MonoBehaviour
 
 	private List<Player>         m_players = new List<Player> ();
 	private Animator leftOarAnimator, rightOarAnimator, boatAnimator;
+	private Transform rutter;
 	private ControlMode controlMode;
 
 	//Input Handlers
@@ -120,6 +121,14 @@ public class BoatUserControl : MonoBehaviour
 		boatAnimator.SetFloat ("AnimationSpeed", animationSpeed);
 		leftOarAnimator.SetFloat ("RowSpeed", leftPaddleSpeed);
 		rightOarAnimator.SetFloat ("RowSpeed", rightPaddleSpeed);
+
+		setRutterPosition ();
+	}
+
+	public void setRutterPosition () {
+		if (currentMode == ControlMode.NAVANDPADDLER) {
+			rutter.localEulerAngles = new Vector3 (0, currentRotationSpeed * 45, 0);
+		}
 	}
 
 	public void doNextLeftOarAction() {
@@ -179,8 +188,8 @@ public class BoatUserControl : MonoBehaviour
 				if (animationSpeed < 0.1f) {
 					animationSpeed = 0.09f;
 				}
-				boatAnimator.SetFloat("ForwardSpeed", newForwardValue);
-				boatAnimator.SetFloat ("AnimationSpeed", Mathf.Max (newForwardValue, absRotationSpeed));
+				boatAnimator.SetFloat ("ForwardSpeed", newForwardValue);
+				boatAnimator.SetFloat ("AnimationSpeed", animationSpeed);
 			}
 		}
 	}
@@ -200,6 +209,7 @@ public class BoatUserControl : MonoBehaviour
 		leftOarAnimator = transform.Find("LeftOar").GetComponent<Animator> ();
 		rightOarAnimator = transform.Find("RightOar").GetComponent<Animator> ();
 		boatAnimator = GetComponent<Animator> ();
+		rutter = transform.Find ("Rutter").transform;
 
 		//Set up EAPathFinder listeners
 		BCMessenger.Instance.RegisterListener("connect", 0, this.gameObject, "HandleConnection");      
@@ -266,12 +276,19 @@ public class BoatUserControl : MonoBehaviour
 		int controllerIndex = msg.ControllerSource;     
 		Player player = m_players.Find (x => x.ControllerIndex == controllerIndex);
 
-		Debug.Log (msg.Payload);
-		Debug.Log (player);
+		//Debug.Log (msg.Payload);
+		//Debug.Log (player);
+
+		string valueString = "";
+		msg.Payload.GetField (ref valueString, "value");
+		float speed = float.Parse (valueString);
+		if (float.IsNaN(speed)) {
+			speed = 0.0f;
+		}
 
 		if (player != null) 
 		{
-			paddleInput.motionReceived(player.role, 1.0f);
+			paddleInput.motionReceived(player.role, speed);
 		}
 	}
 
