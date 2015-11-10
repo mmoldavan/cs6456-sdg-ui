@@ -9,6 +9,7 @@ public class BoatUserControl : MonoBehaviour
 	//Vars set in Unity
 	public float speed;
 	public float torque;
+	public float keyboardInputSpeed = 1.0f;
 	public bool enableKeyboardInput;
 	public UIController uiController;
 
@@ -34,6 +35,8 @@ public class BoatUserControl : MonoBehaviour
 	public float rightPaddleSpeed;
 
 	public float animationTransitionTime = 0.33f;
+
+	private ControlMode currentMode;
 
 	public enum ControlMode {
 		TWOPADDLER = 1,
@@ -106,9 +109,15 @@ public class BoatUserControl : MonoBehaviour
 	}
 
 	public void updateAnimators () {
+		float absRotationSpeed = Mathf.Abs (currentRotationSpeed);
+		float animationSpeed = Mathf.Max (currentForwardSpeed, absRotationSpeed);
+		if (animationSpeed < 0.1f) {
+			animationSpeed = 0.09f; //Trigger animator back to inactive state, a 0 causes undefined floating point operations.
+		}
+
 		boatAnimator.SetFloat ("ForwardSpeed", currentForwardSpeed);
 		boatAnimator.SetFloat ("RotationSpeed", currentRotationSpeed);
-		boatAnimator.SetFloat ("AnimationSpeed", Mathf.Max (currentForwardSpeed, Mathf.Abs(currentRotationSpeed)));
+		boatAnimator.SetFloat ("AnimationSpeed", animationSpeed);
 		leftOarAnimator.SetFloat ("RowSpeed", leftPaddleSpeed);
 		rightOarAnimator.SetFloat ("RowSpeed", rightPaddleSpeed);
 	}
@@ -128,11 +137,13 @@ public class BoatUserControl : MonoBehaviour
 	}
 
 	public void doNextFullOarAction() {
-		rightPaddleSpeed = nextFullAction;
-		leftPaddleSpeed = nextFullAction;
-		nextRightAction = 0f;
-		updateForwardSpeed ();
-		updateAnimators ();
+		if (currentMode == ControlMode.NAVANDPADDLER) {
+			rightPaddleSpeed = nextFullAction;
+			leftPaddleSpeed = nextFullAction;
+			nextFullAction = 0f;
+			updateForwardSpeed ();
+			updateAnimators ();
+		}
 	}
 
 	public void doNextRutterAction() {
@@ -142,7 +153,9 @@ public class BoatUserControl : MonoBehaviour
 
 	public void updateBoatSpeeds () {
 		updateForwardSpeed ();
-		currentRotationSpeed =  rightPaddleSpeed - leftPaddleSpeed;
+		if(currentMode == ControlMode.TWOPADDLER) {
+			currentRotationSpeed =  rightPaddleSpeed - leftPaddleSpeed;
+		}
 	}
 
 	public void updateForwardSpeed() {
@@ -154,15 +167,20 @@ public class BoatUserControl : MonoBehaviour
 		if (nextForwardSpeed >= 0.0f) {
 			float timeSinceTranstitionStart = Time.time - forwardTransitionStartTime;
 			float lerpTime = timeSinceTranstitionStart / animationTransitionTime;
-			if(lerpTime > 1.0f || currentForwardSpeed == nextForwardSpeed) {
+			if(lerpTime >= 1.0f || currentForwardSpeed == nextForwardSpeed) {
 				boatAnimator.SetFloat("ForwardSpeed", nextForwardSpeed);
 				currentForwardSpeed = nextForwardSpeed;
 				nextForwardSpeed = -1.0f;
 			}
 			else {
 				float newForwardValue = Mathf.Lerp(currentForwardSpeed,nextForwardSpeed,lerpTime);
-				boatAnimator.SetFloat("ForwardSpeed", Mathf.Lerp(currentForwardSpeed,nextForwardSpeed,lerpTime));
-				boatAnimator.SetFloat ("AnimationSpeed", Mathf.Max (newForwardValue, Mathf.Abs(currentRotationSpeed)));
+				float absRotationSpeed = Mathf.Abs (currentRotationSpeed);
+				float animationSpeed = Mathf.Max (newForwardValue, absRotationSpeed);
+				if (animationSpeed < 0.1f) {
+					animationSpeed = 0.09f;
+				}
+				boatAnimator.SetFloat("ForwardSpeed", newForwardValue);
+				boatAnimator.SetFloat ("AnimationSpeed", Mathf.Max (newForwardValue, absRotationSpeed));
 			}
 		}
 	}
@@ -204,6 +222,8 @@ public class BoatUserControl : MonoBehaviour
 		nextRightAction = 0.0f;
 		nextFullAction = 0.0f;
 		nextNavigationAction = 0.0f;
+
+		currentMode = ControlMode.TWOPADDLER;
 	}
 	
 	// Update is called once per frame
@@ -213,10 +233,13 @@ public class BoatUserControl : MonoBehaviour
 
 		if (enableKeyboardInput) {
 			if(Input.GetKeyDown(KeyCode.N)) {
-				paddleInput.motionReceived(PlayerRole.LEFTPADDLER, 1.0f);
+				paddleInput.motionReceived(PlayerRole.LEFTPADDLER, keyboardInputSpeed);
 			}
 			if(Input.GetKeyDown(KeyCode.M)) {
-				paddleInput.motionReceived(PlayerRole.RIGHTPADDLER, 1.0f);
+				paddleInput.motionReceived(PlayerRole.RIGHTPADDLER, keyboardInputSpeed);
+			}
+			if(Input.GetKeyDown(KeyCode.B)) {
+				paddleInput.motionReceived(PlayerRole.FULLPADDLER, keyboardInputSpeed);
 			}
 			if(Input.GetKeyDown(KeyCode.R)) { //Fast Reload
 				Application.LoadLevel (Application.loadedLevelName);
@@ -229,9 +252,7 @@ public class BoatUserControl : MonoBehaviour
 	// message handlers...
 	private void HandleConnection(ControllerMessage msg)
 	{
-		// index of new hand
-		int controllerIndex = msg.ControllerSource; 
-		Debug.Log (controllerIndex);
+		int controllerIndex = msg.ControllerSource;
 
 		Player player = m_players.Find (x => x.ControllerIndex == controllerIndex);
 		if (player == null) 
@@ -272,12 +293,24 @@ public class BoatUserControl : MonoBehaviour
 		int controllerIndex = msg.ControllerSource;     
 		Player player = m_players.Find (x => x.ControllerIndex == controllerIndex);
 		
-		Debug.Log (msg.Payload);
-		
-		if (player != null) 
-		{
-			player.role = PlayerRole.NAVIGATOR;
+		//Debug.Log (msg.Payload);
 
+		string newRole = "";
+		msg.Payload.GetField (ref newRole, "value");
+		if (newRole == "navigator") {
+			currentMode = ControlMode.NAVANDPADDLER;
+			player.role = PlayerRole.NAVIGATOR;
+			Player player2 = m_players.Find (x => x.role <= PlayerRole.FULLPADDLER);
+			if(player2 != null) {
+				player2.role = PlayerRole.FULLPADDLER;
+			}
+		} else {
+			currentMode = ControlMode.TWOPADDLER;
+			player.role = PlayerRole.LEFTPADDLER;
+			Player player2 = m_players.Find (x => x.role <= PlayerRole.FULLPADDLER);
+			if(player2 != null) {
+				player2.role = PlayerRole.RIGHTPADDLER;
+			}
 		}
 
 	}
@@ -287,29 +320,43 @@ public class BoatUserControl : MonoBehaviour
 		int controllerIndex = msg.ControllerSource;     
 		Player player = m_players.Find (x => x.ControllerIndex == controllerIndex);
 		
-		Debug.Log (msg.Payload);
-		
+		//Debug.Log (msg.Payload);
+
+		string rotationString = "";
+		msg.Payload.GetField (ref rotationString, "value");
+		float rotation = float.Parse (rotationString);
+		if (float.IsNaN(rotation)) {
+			rotation = 0.0f;
+		}
+
 		if (player != null) 
 		{
-			player.role = PlayerRole.NAVIGATOR;
-			navigatorInput.motionReceived(player.role, 1.0f);
+			navigatorInput.motionReceived(player.role, rotation);
 		}
 	}
 
 	private Player CreatePlayer(int controllerIndex)
 	{
-		Player player = new Player();
+		Player player = new Player ();
 		player.ControllerIndex = controllerIndex;
 		Debug.Log (player);
-
-		if (m_players.Find (x => x.role == PlayerRole.LEFTPADDLER) == null) {
-			player.role = PlayerRole.LEFTPADDLER;
-			m_players.Add(player);
-		} else if (m_players.Find (x => x.role == PlayerRole.RIGHTPADDLER) == null) {
-			player.role = PlayerRole.RIGHTPADDLER;
-			m_players.Add(player);
+		if (currentMode == ControlMode.TWOPADDLER) {
+			if (m_players.Find (x => x.role == PlayerRole.LEFTPADDLER) == null) {
+				player.role = PlayerRole.LEFTPADDLER;
+				m_players.Add (player);
+			} else if (m_players.Find (x => x.role == PlayerRole.RIGHTPADDLER) == null) {
+				player.role = PlayerRole.RIGHTPADDLER;
+				m_players.Add (player);
+			}
+		} else {
+			if (m_players.Find (x => x.role == PlayerRole.FULLPADDLER) == null) {
+				player.role = PlayerRole.FULLPADDLER;
+				m_players.Add (player);
+			} else if (m_players.Find (x => x.role == PlayerRole.NAVIGATOR) == null) {
+				player.role = PlayerRole.NAVIGATOR;
+				m_players.Add (player);
+			}
 		}
-
 		return player;
 	}
 }
