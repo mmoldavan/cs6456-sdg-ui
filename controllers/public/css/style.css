@@ -1,38 +1,33 @@
-@media only screen and (orientation: landscape) { 
-
-    /* Preload images */
-    body:before {
-        display: none;
-        content: url('/img/sample_background.jpg')
-    }
-    
-    html, body {
-        width: 100%;
-        height: 100%;
-    } 
-    
-    body {
-        overflow-y: hidden ! important;
-        overflow-x: hidden ! important;
-        /*background-image: url('/img/sample_background.jpg');*/
-        background-repeat: no-repeat;
-        background-size: 100% 100%;
-    }
-    
-    :-webkit-full-screen {
-		/*background: url('/img/sample_background.jpg');*/
-		background-size: 100% 100%;
-	}
-	:-moz-full-screen {
-		/*background: url('/img/sample_background.jpg');*/
-		background-size: 100% 100%;
-	}
-
-
-    #pause {
-        position: absolute;
-        right: 0;
-        top: 5%;
-        width: 12%;
-    }
+html, body { 
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	height:100%;
+}
+button { 
+	margin:0;
+	padding: 25px;
+	background: linear-gradient(#92e8dd, #679b94);
+	font-size: 1.5em;
+	border: 1px solid #aaa;
+	box-shadow: 10px 5px 5px #eee;
+	border-radius: 3%;
+}
+img { width: 350px;}
+.instructions { padding: 5px; }
+.controller { height:100%;}
+.badge { margin:0; padding: 10px; font-size:1.5em; }
+.debug-output { 
+	border: 1px solid red;
+	background-color:#fff;
+	margin:0;
+	padding:5px;
+}
+.debug-output li { margin-left: 0; list-style-position:inside; }
+#player { background-color:#61AAE5; color:#fff; margin-bottom: 8px;}
+#start { 
+	font-size:1.5em;
+	width:100%;
+	text-align: center;
+	padding:25px;
 }

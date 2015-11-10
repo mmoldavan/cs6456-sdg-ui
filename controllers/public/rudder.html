@@ -3,27 +3,34 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-	<title>Template</title>
+	<title>Navigator Controller</title>
 	<link rel="stylesheet" href="/css/style.css">
     <style>
-	html, body { margin: 0; padding: 0; width: 100%; height:100%; overflow: hidden;}
-	#feedback { height: 50%; width: 10%; background-color: red; margin: 0 auto; background: linear-gradient(#534741, #998675); }
-	#top { height:10px; width:100%; background-color: #eee; }
-	
-	.badge { margin:0; padding: 10px; font-size:1.5em; }
-	#player { background-color:#61AAE5; color:#fff; margin-bottom: 8px;}
+		#feedback { height: 50%; width: 10%; margin: 0 auto; background: linear-gradient(#534741, #998675); }
+		#top { height:10px; width:100%; background-color: #eee; }	
+		#player { background-color:#61AAE5; color:#fff; margin-bottom: 8px;}
 	</style>
 </head>
 <body>
-    <div class="debug-output">
-        <ul class="debug-output">
-            <li id="orientStatus"></li>
-            <li id="vibStatus"></li>
-            <li>Jumping: <span id="jumping"></span></p>
-        </ul>
+	<div class="instructions">
+        <h3>To Navigate</h3>
+        <p>Turn the boat left / right by swiping your finger anywhere across the x-axis of the phone in its upright position.
+        <h3>To Jump</h3>
+        <p>Jump by tilting the phone backwards along its up/down axis, away from your body. Your partner must complete the jump motion simultaneously to jump successfully.</p> 
+        <img src="/img/nav.png" alt="image demonstrating how to swipe on the x-axis to turn the boat and tilt the phone away from your body to jump" />   
+        <button id="start" type="input">Start</button>
     </div>
-    <p class="badge" id="player"></p>
-    <div id="feedback"></div>
+	<div class="controller">
+        <div class="debug-output">
+            <ul>
+                <li id="orientStatus"></li>
+                <li id="vibStatus"></li>
+                <li>Jumping: <span id="jumping"></span></li>
+            </ul>
+        </div>
+        <p class="badge" id="player"></p>
+        <div id="feedback"></div>
+    </div>
 	
 	<!-- Required javascript libraries. Add your own libraries here. -->
 	<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>

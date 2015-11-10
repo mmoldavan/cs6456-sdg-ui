@@ -16,8 +16,29 @@ var jumping = false;
 var vibrationSupport = false;
 var debugMode = false;
 var player;
+var maxRotation = 30;
+var currRotation = 0;
 
 $(document).ready(function () {
+	$('.controller').hide();
+	if (!window.DeviceOrientationEvent) {
+		alert("Device Orientation not supported and is required for this controller.");
+		$('#start').html('Go Back');
+	}
+	
+	$('#start').click(function() {
+		if (!window.DeviceOrientationEvent)
+			window.location = '/index.html';
+		else {
+			$('.instructions').hide(500);
+			$('.controller').show();
+			initController();
+		}
+	})
+
+});
+
+function initController() {
 	//see which player we are and if we're in debug mode
 	debugMode = /\/debug\//.test(window.location);
 	if (!debugMode)
@@ -36,11 +57,6 @@ $(document).ready(function () {
 		} else {
 			$('#vibStatus').text("Vibration NOT supported");
 		}
-		/*var fakeEventData = {};
-		fakeEventData.gamma = 100;
-		for (var i = 0; i < 10; i++) {
-			(function(j){setTimeout(function(){deviceOrientHandler(fakeEventData);},j*500);}(i));
-		}*/
 	} else {
 		alert("Device Orientation not supported and is required for this controller.");
 	}
@@ -56,7 +72,7 @@ $(document).ready(function () {
 		if (payload.type == "jump_initiated" && vibrationSupport)
 			navigator.vibrate(200);
 	});
-});
+}
 
 function deviceOrientHandler(eventData) {	
 	var thisInstant = Date.now();
@@ -112,11 +128,13 @@ function writeMove(val, thisInstant) {
 				currMove.move = "d";
 			else { //gamma is still pos
 				if (currMove.val > prevPoint) {
-					currMove.move = "u";	
+					currMove.move = "u";
+					updateRotation('u');
 				} else if (currMove.val == prevPoint) {
 					currMove.move = "s"; //for still, because of buffer shouldn't be possible
 				} else { //must be less so moving down
 					currMove.move = "d";
+					updateRotation('d');
 				}
 			}
 		} else { //prevPoint was less than 0
@@ -124,11 +142,13 @@ function writeMove(val, thisInstant) {
 				currMove.move = "u";
 			else { //gamma is still neg
 				if (prevPoint < currMove.val) {
-					currMove.move = "u";	
+					currMove.move = "u";
+					updateRotation('u')
 				} else if (prevPoint == currMove.val) {
 					currMove.move = "s";	
 				} else { //prevPoint must be greater, so we're moving down
 					currMove.move = "d";
+					updateRotation('d');
 				}
 			}			
 		}		
@@ -157,21 +177,28 @@ function checkForGesture() {
 		if (debugMode)
 			$('#strokeTime').text($('#strokeTime').text()+" "+moveDuration);
 		moveSpeed = (gestureMaxDuration - moveDuration) / gestureMaxDuration;
-		//take the continuous var and map it to categories for slow, medium, fast
-		var moveSpeedCat;
-		if (moveSpeed < .35)
-			moveSpeedCat = 1;
-		else if (moveSpeed >= .35 && moveSpeed <= .6)
-			moveSpeedCat = 0.5;
-		else
-			moveSpeedCat = 0.25;		 
+		if (moveSpeed < .1)
+			moveSpeed = .1;	 
 		var sendNotification = {};
 		sendNotification.type = "stroke";
 		sendNotification.action = "stroke";
-		sendNotification.value = moveSpeedCat;
+		sendNotification.value = moveSpeed.toFixed(1);
 		conn.sendMessage(sendNotification);
 		//once we've recognized the first stroke, this whole history can be reset
 		vMotion.history = [];
 	}
+}
+
+function updateRotation(direction) {
+	if (direction == 'u') {
+		currRotation -= 10;
+		if (currRotation < -maxRotation)
+			currRotation = -maxRotation;		
+	} else {
+		currRotation += 10;
+		if (currRotation > maxRotation)
+			currRotation = maxRotation;
+	}
+	$('svg').css('transform', 'rotate('+currRotation+'deg)')
 }
 

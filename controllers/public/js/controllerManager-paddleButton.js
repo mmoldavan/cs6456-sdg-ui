@@ -14,6 +14,16 @@ var currentTimerActive = false;
 var vibrationSupport = false;
 
 $(document).ready(function () {
+	$('.controller').hide();
+	
+	$('#start').click(function() {
+		$('.instructions').remove();
+		$('.controller').show();
+		initController();
+	})
+});
+
+function initController() {
 	//see which player and state our role
 	var resultObj = /\d*$/.exec(window.location);
 	player = resultObj[0];
@@ -57,7 +67,7 @@ $(document).ready(function () {
 		if (payload.type == "jump_initiated" && vibrationSupport)
 			navigator.vibrate(200);
 	});
-});
+}
 
 function execActionType(whichButton) {
 	currentTimerActive = false;

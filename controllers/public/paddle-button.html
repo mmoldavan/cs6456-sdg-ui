@@ -3,34 +3,34 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-	<title>Paddle Controller</title>
+	<title>Paddle Controller - Buttons</title>
+    <link rel="stylesheet" href="/css/style.css">
 	<style>
-	body, html { height:100%; margin:0; padding:0; overflow:hidden; }
 	button { 
 		display:inline-block;
 		width: 47%;
 		height:90%;
-		margin:0;
-		padding: 25px;
-		background: linear-gradient(#92e8dd, #679b94);
-		font-size: 1.5em;
-		border: 1px solid #aaa;
-		box-shadow: 10px 5px 5px #eee;
-		border-radius: 3%;
 	}
 	#down { background: linear-gradient(#F0836A, #a15e4f); }
 	#down.pressing { background: #a15e4f; }
 	#up { margin-left: .8%; margin-right: 4%; }
 	#up.pressing { background:#679b94; }
-		
-	.badge { margin:0; padding: 10px; font-size:1.5em; }
-	#player { background-color:#61AAE5; color:#fff; margin-bottom: 8px;}
     </style>
 </head>
 <body>
-	<p class="badge" id="player"></p>
-	<button type="input" id="up">Up</button>
-    <button type="input" id="down">Down</button>
+	<div class="instructions">
+        <h3>To Paddle</h3>
+        <p>A full paddle movement consists of the completion of an up and down stroke, in that order, using the corresponding buttons.</p>
+        <p>Paddling has variable speed based on the speed in which you complete the button presses.</p>
+        <h3>To Jump</h3>
+        <p>Jump by hitting the up and down buttons at the same time. Your partner must complete the jump motion simultaneously to jump successfully.</p>
+        <button id="start" type="input">Start</button>
+    </div>
+	<div class="controller">
+        <p class="badge" id="player"></p>
+        <button type="input" id="up">Up</button>
+        <button type="input" id="down">Down</button>
+    </div>
     	
 	<!-- Required javascript libraries. Add your own libraries here. -->
 	<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>

@@ -15,6 +15,24 @@ var jumping = false;
 var vibrationSupport = false;
 
 $(document).ready(function () {
+	$('.controller').hide();
+	if (!window.DeviceOrientationEvent) {
+		alert("Device Orientation not supported and is required for this controller.");
+		$('#start').html('Go Back');
+	}
+	
+	$('#start').click(function() {
+		if (!window.DeviceOrientationEvent)
+			window.location = '/index.html';
+		else {
+			$('.instructions').hide(500);
+			$('.controller').show();
+			initController();
+		}
+	})
+});
+
+function initController() {
 	//see which player we are + our role and if we're in debug mode
 	debugMode = /\/debug\//.test(window.location);
 	if (!debugMode)
@@ -64,8 +82,8 @@ $(document).ready(function () {
 		var payload = message.payload;
 		if (payload.type == "jump_initiated" && vibrationSupport)
 			navigator.vibrate(200);
-	});
-});
+	});	
+}
 
 function updateDirection(amount) {
 	var newPosition = applyBounds(parseFloat(currPosition) + parseFloat(amount), 1.0);
@@ -78,8 +96,7 @@ function updateDirection(amount) {
 		conn.sendMessage(sendNotification);
 		console.log(sendNotification);
 		updateRef(currPosition);
-	}
-	
+	}	
 }
 
 function applyBounds(value, bound) {
