@@ -97,13 +97,14 @@ public class BoatUserControl : MonoBehaviour
 			if (active) {
 				if (player < PlayerRole.NAVIGATOR && player != initiatingPlayer) {
 					if ( pressTime < Time.time + jumpRecieveBuffer) {
-						//userControl.boatAnimator.SetTrigger("Jump");
-						userControl.rigidbody.AddForce(Vector3.up * userControl.jumpForce,ForceMode.Impulse);
+						userControl.leftOarAnimator.SetTrigger("Jump");
+						userControl.rightOarAnimator.SetTrigger("Jump");
 						active = false;
 					}
 					else {
 						pressTime = Time.time;
 						initiatingPlayer = player;
+						userControl.notifyUIofPaddle(player, 0.5f);
 						active = true;
 					}
 				}
@@ -111,6 +112,7 @@ public class BoatUserControl : MonoBehaviour
 			} else {
 				pressTime = Time.time;
 				initiatingPlayer = player;
+				userControl.notifyUIofPaddle(player, 0.5f);
 				active = true;
 			}
 		}
@@ -137,9 +139,17 @@ public class BoatUserControl : MonoBehaviour
 	public void updateAnimators () {
 		float absRotationSpeed = Mathf.Abs (currentRotationSpeed);
 		float animationSpeed = Mathf.Max (currentForwardSpeed, absRotationSpeed);
+		// Actual 0s on any of these values will cause Not a Number exceptions in the animator controllers.
 		if (animationSpeed < 0.1f) {
-			animationSpeed = 0.09f; //Trigger animator back to inactive state, a 0 causes undefined floating point operations.
+			animationSpeed = 0.09f;
 		}
+		/*
+		if (leftPaddleSpeed < 0.1f) {
+			leftPaddleSpeed = 0.09f; 
+		}
+		if (rightPaddleSpeed < 0.1f) {
+			rightPaddleSpeed = 0.09f; 
+		}*/
 
 		boatAnimator.SetFloat ("ForwardSpeed", currentForwardSpeed);
 		boatAnimator.SetFloat ("RotationSpeed", currentRotationSpeed);
@@ -154,6 +164,10 @@ public class BoatUserControl : MonoBehaviour
 		if (currentMode == ControlMode.NAVANDPADDLER) {
 			rutter.localEulerAngles = new Vector3 (0, currentRotationSpeed * 45, 0);
 		}
+	}
+
+	public void jumpAfterWaterHit() {
+		rigidbody.AddForce(Vector3.up * jumpForce,ForceMode.Impulse);
 	}
 
 	public void doNextLeftOarAction() {
