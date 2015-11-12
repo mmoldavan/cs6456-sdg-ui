@@ -61,20 +61,20 @@ public class BoatUserControl : MonoBehaviour
 		public void motionReceived(PlayerRole player, float speed) {
 			if (player == PlayerRole.LEFTPADDLER) {
 				userControl.nextLeftAction = speed;
-				userControl.notifyUIofPaddle(player, 0.5f);
+				userControl.notifyUIofPaddle(player, speed, 0.5f);
 				if(userControl.leftPaddleSpeed == 0.0f) {
 					userControl.doNextLeftOarAction();
 				}
 			} else if (player == PlayerRole.RIGHTPADDLER) {
 				userControl.nextRightAction = speed;
-				userControl.notifyUIofPaddle(player, 0.5f);
+				userControl.notifyUIofPaddle(player, speed, 0.5f);
 				if(userControl.rightPaddleSpeed == 0.0f) {
 
 					userControl.doNextRightOarAction();
 				}
 			} else if (player == PlayerRole.FULLPADDLER) {
 				userControl.nextFullAction = speed;
-				userControl.notifyUIofPaddle(player, 0.5f);
+				userControl.notifyUIofPaddle(player, speed, 0.5f);
 				if(userControl.rightPaddleSpeed == 0.0f) {
 					userControl.doNextFullOarAction();
 				}
@@ -194,11 +194,11 @@ public class BoatUserControl : MonoBehaviour
 		}
 	}
 
-	public void notifyUIofPaddle(PlayerRole player, float buffer) {
+	public void notifyUIofPaddle(PlayerRole player, float paddleSpeed, float buffer) {
 		if (player == PlayerRole.LEFTPADDLER) {
-			uiController.addActionTextFader ("LeftPlayer/LeftPaddle", Time.time, buffer);
+			uiController.addActionTextFader ("LeftPlayer/LeftPaddle", paddleSpeed, Time.time, buffer);
 		} else {
-			uiController.addActionTextFader ("RightPlayer/RightPaddle", Time.time, buffer);
+			uiController.addActionTextFader ("RightPlayer/RightPaddle", paddleSpeed, Time.time, buffer);
 		}
 	}
 

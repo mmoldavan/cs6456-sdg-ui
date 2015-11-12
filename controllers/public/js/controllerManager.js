@@ -178,9 +178,9 @@ function checkForGesture() {
 			$('#strokeTime').text($('#strokeTime').text()+" "+moveDuration);
 		moveSpeed = (gestureMaxDuration - moveDuration) / gestureMaxDuration;
 		var moveSpeedCat;
-		if (moveSpeed <= .5)
-			moveSpeedCat = .5;
-		else if (moveSpeed > .5 && moveSpeed <= .7)
+		if (moveSpeed <= .3)
+			moveSpeedCat = .35;
+		else if (moveSpeed > .3 && moveSpeed <= .55)
 			moveSpeedCat = .75;
 		else
 			moveSpeedCat = 1;

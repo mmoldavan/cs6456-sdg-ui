@@ -38,11 +38,11 @@ public class UIController : MonoBehaviour {
 	}
 
 	public class ActionTextFader : TextFader {
-		public ActionTextFader(Text element, float fadeTime, float startTime) : base(element, fadeTime, startTime) {
-			string[] possibleTextValues = {"Lets Go","Stroke It","Forward"};
+		public ActionTextFader(Text element, int valueIndex, float fadeTime, float startTime) : base(element, fadeTime, startTime) {
+			string[] possibleTextValues = {"Slow","Paddle","Fast"};
 	
 			element.transform.eulerAngles = new Vector3(0f, 0f, Random.Range(-10f,10f));
-			element.text = possibleTextValues[Random.Range(0,possibleTextValues.Length)];
+			element.text = possibleTextValues[valueIndex];
 		}
 
 
@@ -66,10 +66,19 @@ public class UIController : MonoBehaviour {
 		uiCanvas = GameObject.Find ("Canvas").GetComponent<Canvas> ();
 	}
 	
-	public void addActionTextFader(string textKey, float startTime, float fadeTime) {
+	public void addActionTextFader(string textKey, float paddleSpeed, float startTime, float fadeTime) {
 		Text element = uiCanvas.transform.Find (textKey).GetComponent<Text> ();
 		element.enabled = true;
-		TextFader fader = new ActionTextFader (element, fadeTime, startTime);
+		int textIndex;
+		if (paddleSpeed <= .5) {
+			textIndex = 0;
+		} else if (paddleSpeed > .5 && paddleSpeed <= .75) {
+			textIndex = 1;
+		} else {
+			textIndex = 2;
+		}
+	
+		TextFader fader = new ActionTextFader (element, textIndex, fadeTime, startTime);
 		currentFaders.Add (fader);
 	}
 
