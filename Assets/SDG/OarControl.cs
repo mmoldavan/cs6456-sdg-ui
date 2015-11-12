@@ -25,4 +25,10 @@ public class OarControl : MonoBehaviour {
 		boatControl.doNextRightOarAction ();
 
 	}
+
+	public void jumpWaterHit()
+	{
+		splashParticleSystem.Play ();
+		boatControl.jumpAfterWaterHit ();
+	}
 }

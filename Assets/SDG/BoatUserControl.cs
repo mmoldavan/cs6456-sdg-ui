@@ -7,8 +7,7 @@ using BladeCast;
 public class BoatUserControl : MonoBehaviour 
 {
 	//Vars set in Unity
-	public float speed;
-	public float torque;
+	public float jumpForce = 50f;
 	public float keyboardInputSpeed = 1.0f;
 	public bool enableKeyboardInput;
 	public UIController uiController;
@@ -17,6 +16,7 @@ public class BoatUserControl : MonoBehaviour
 	private Animator leftOarAnimator, rightOarAnimator, boatAnimator;
 	private Transform rutter;
 	private ControlMode controlMode;
+	private Rigidbody rigidbody;
 
 	//Input Handlers
 	private PaddleInput paddleInput;
@@ -83,11 +83,39 @@ public class BoatUserControl : MonoBehaviour
 	}
 
 	private class JumpInput: PendingInput {
+		float jumpRecieveBuffer = 0.5f;
+
+		private BoatUserControl userControl;
+
 		public JumpInput(BoatUserControl userControl){
+			this.active = false;
+			this.userControl = userControl;
+
 		}
 		
 		public void motionReceived(PlayerRole player, float speed) {
-			
+			if (active) {
+				if (player < PlayerRole.NAVIGATOR && player != initiatingPlayer) {
+					if ( pressTime < Time.time + jumpRecieveBuffer) {
+						userControl.leftOarAnimator.SetTrigger("Jump");
+						userControl.rightOarAnimator.SetTrigger("Jump");
+						userControl.notifyUIofJump(player, 0.5f);
+						active = false;
+					}
+					else {
+						pressTime = Time.time;
+						initiatingPlayer = player;
+						userControl.notifyUIofJump(player, 0.5f);
+						active = true;
+					}
+				}
+
+			} else {
+				pressTime = Time.time;
+				initiatingPlayer = player;
+				userControl.notifyUIofJump(player, 0.5f);
+				active = true;
+			}
 		}
 		public void update() {
 			
@@ -112,9 +140,17 @@ public class BoatUserControl : MonoBehaviour
 	public void updateAnimators () {
 		float absRotationSpeed = Mathf.Abs (currentRotationSpeed);
 		float animationSpeed = Mathf.Max (currentForwardSpeed, absRotationSpeed);
+		// Actual 0s on any of these values will cause Not a Number exceptions in the animator controllers.
 		if (animationSpeed < 0.1f) {
-			animationSpeed = 0.09f; //Trigger animator back to inactive state, a 0 causes undefined floating point operations.
+			animationSpeed = 0.09f;
 		}
+		/*
+		if (leftPaddleSpeed < 0.1f) {
+			leftPaddleSpeed = 0.09f; 
+		}
+		if (rightPaddleSpeed < 0.1f) {
+			rightPaddleSpeed = 0.09f; 
+		}*/
 
 		boatAnimator.SetFloat ("ForwardSpeed", currentForwardSpeed);
 		boatAnimator.SetFloat ("RotationSpeed", currentRotationSpeed);
@@ -129,6 +165,10 @@ public class BoatUserControl : MonoBehaviour
 		if (currentMode == ControlMode.NAVANDPADDLER) {
 			rutter.localEulerAngles = new Vector3 (0, currentRotationSpeed * 45, 0);
 		}
+	}
+
+	public void jumpAfterWaterHit() {
+		rigidbody.AddForce(Vector3.up * jumpForce,ForceMode.Impulse);
 	}
 
 	public void doNextLeftOarAction() {
@@ -178,6 +218,7 @@ public class BoatUserControl : MonoBehaviour
 			float lerpTime = timeSinceTranstitionStart / animationTransitionTime;
 			if(lerpTime >= 1.0f || currentForwardSpeed == nextForwardSpeed) {
 				boatAnimator.SetFloat("ForwardSpeed", nextForwardSpeed);
+
 				currentForwardSpeed = nextForwardSpeed;
 				nextForwardSpeed = -1.0f;
 			}
@@ -189,7 +230,9 @@ public class BoatUserControl : MonoBehaviour
 					animationSpeed = 0.09f;
 				}
 				boatAnimator.SetFloat ("ForwardSpeed", newForwardValue);
-				boatAnimator.SetFloat ("AnimationSpeed", animationSpeed);
+				if (boatAnimator.GetFloat("AnimationSpeed") < animationSpeed) {
+					boatAnimator.SetFloat ("AnimationSpeed", animationSpeed);
+				}
 			}
 		}
 	}
@@ -202,6 +245,14 @@ public class BoatUserControl : MonoBehaviour
 		}
 	}
 
+	public void notifyUIofJump(PlayerRole player, float buffer) {
+		if (player == PlayerRole.LEFTPADDLER) {
+			uiController.addActionTextFader ("LeftPlayer/LeftPaddle", Time.time, buffer);
+		} else {
+			uiController.addActionTextFader ("RightPlayer/RightPaddle", Time.time, buffer);
+		}
+	}
+
 	//Game Init
 	void Start()
 	{  
@@ -210,6 +261,7 @@ public class BoatUserControl : MonoBehaviour
 		rightOarAnimator = transform.Find("RightOar").GetComponent<Animator> ();
 		boatAnimator = GetComponent<Animator> ();
 		rutter = transform.Find ("Rutter").transform;
+		rigidbody = this.GetComponent<Rigidbody> ();
 
 		//Set up EAPathFinder listeners
 		BCMessenger.Instance.RegisterListener("connect", 0, this.gameObject, "HandleConnection");      
@@ -248,8 +300,17 @@ public class BoatUserControl : MonoBehaviour
 			if(Input.GetKeyDown(KeyCode.M)) {
 				paddleInput.motionReceived(PlayerRole.RIGHTPADDLER, keyboardInputSpeed);
 			}
+			if(Input.GetKeyDown(KeyCode.J)) {
+				jumpInput.motionReceived(PlayerRole.LEFTPADDLER, keyboardInputSpeed);
+			}
+			if(Input.GetKeyDown(KeyCode.K)) {
+				jumpInput.motionReceived(PlayerRole.RIGHTPADDLER, keyboardInputSpeed);
+			}
 			if(Input.GetKeyDown(KeyCode.B)) {
 				paddleInput.motionReceived(PlayerRole.FULLPADDLER, keyboardInputSpeed);
+			}
+			if(Input.GetKeyDown(KeyCode.H)) {
+				jumpInput.motionReceived(PlayerRole.FULLPADDLER, keyboardInputSpeed);
 			}
 			if(Input.GetKeyDown(KeyCode.R)) { //Fast Reload
 				Application.LoadLevel (Application.loadedLevelName);
@@ -296,7 +357,7 @@ public class BoatUserControl : MonoBehaviour
 		
 		if (player != null) 
 		{
-			paddleInput.motionReceived(player.role, 1.0f);
+			jumpInput.motionReceived(player.role, 1.0f);
 		}
 	}
 
