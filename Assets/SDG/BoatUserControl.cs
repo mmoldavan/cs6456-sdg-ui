@@ -99,12 +99,13 @@ public class BoatUserControl : MonoBehaviour
 					if ( pressTime < Time.time + jumpRecieveBuffer) {
 						userControl.leftOarAnimator.SetTrigger("Jump");
 						userControl.rightOarAnimator.SetTrigger("Jump");
+						userControl.notifyUIofJump(player, 0.5f);
 						active = false;
 					}
 					else {
 						pressTime = Time.time;
 						initiatingPlayer = player;
-						userControl.notifyUIofPaddle(player, 0.5f);
+						userControl.notifyUIofJump(player, 0.5f);
 						active = true;
 					}
 				}
@@ -112,7 +113,7 @@ public class BoatUserControl : MonoBehaviour
 			} else {
 				pressTime = Time.time;
 				initiatingPlayer = player;
-				userControl.notifyUIofPaddle(player, 0.5f);
+				userControl.notifyUIofJump(player, 0.5f);
 				active = true;
 			}
 		}
@@ -237,6 +238,14 @@ public class BoatUserControl : MonoBehaviour
 	}
 
 	public void notifyUIofPaddle(PlayerRole player, float buffer) {
+		if (player == PlayerRole.LEFTPADDLER) {
+			uiController.addActionTextFader ("LeftPlayer/LeftPaddle", Time.time, buffer);
+		} else {
+			uiController.addActionTextFader ("RightPlayer/RightPaddle", Time.time, buffer);
+		}
+	}
+
+	public void notifyUIofJump(PlayerRole player, float buffer) {
 		if (player == PlayerRole.LEFTPADDLER) {
 			uiController.addActionTextFader ("LeftPlayer/LeftPaddle", Time.time, buffer);
 		} else {
