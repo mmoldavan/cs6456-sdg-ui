@@ -177,12 +177,17 @@ function checkForGesture() {
 		if (debugMode)
 			$('#strokeTime').text($('#strokeTime').text()+" "+moveDuration);
 		moveSpeed = (gestureMaxDuration - moveDuration) / gestureMaxDuration;
-		if (moveSpeed < .1)
-			moveSpeed = .1;	 
+		var moveSpeedCat;
+		if (moveSpeed <= .5)
+			moveSpeedCat = .5;
+		else if (moveSpeed > .5 && moveSpeed <= .7)
+			moveSpeedCat = .75;
+		else
+			moveSpeedCat = 1;
 		var sendNotification = {};
 		sendNotification.type = "stroke";
 		sendNotification.action = "stroke";
-		sendNotification.value = moveSpeed.toFixed(1);
+		sendNotification.value = moveSpeedCat;
 		conn.sendMessage(sendNotification);
 		//once we've recognized the first stroke, this whole history can be reset
 		vMotion.history = [];

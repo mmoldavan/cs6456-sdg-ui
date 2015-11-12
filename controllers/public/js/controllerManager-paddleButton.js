@@ -12,6 +12,9 @@ var concurrentTouches = 0;
 var currentTimer;
 var currentTimerActive = false;
 var vibrationSupport = false;
+var strokeInit = false;
+var strokeInitTime;
+var gestureMaxDuration = 1000;
 
 $(document).ready(function () {
 	$('.controller').hide();
@@ -79,13 +82,29 @@ function execActionType(whichButton) {
 		sendNotification.value = "start";
 		conn.sendMessage(sendNotification);
 	} else {
-		var sendNotification = {};
-		sendNotification.type = "stroke";
-		if (whichButton == 'up')
-			sendNotification.value = "up";
-		else
-			sendNotification.value = "down";
-		conn.sendMessage(sendNotification);	
+		if (whichButton == 'up') {
+			strokeInit = true;
+			strokeInitTime = Date.now();
+		}
+		else if (whichButton == 'down' && strokeInit == true) {
+			var moveDuration = Date.now() - strokeInitTime;
+			//alert(moveDuration);
+			var moveSpeed = moveDuration/gestureMaxDuration;
+			if (moveSpeed < 1) { //ignore if it took longer than max duration
+				var moveSpeedCat;
+				if (moveSpeed >= .5)
+					moveSpeedCat = .5;
+				else if (moveSpeed < .5 && moveSpeed >= .15)
+					moveSpeedCat = .75;
+				else
+					moveSpeedCat = 1.0;
+				var sendNotification = {};
+				sendNotification.type = "stroke";
+				sendNotification.value = moveSpeedCat; 
+				conn.sendMessage(sendNotification);
+			}
+			strokeInit = false;
+		}
 	}	
 	
 } 

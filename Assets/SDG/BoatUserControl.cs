@@ -278,13 +278,8 @@ public class BoatUserControl : MonoBehaviour
 
 		//Debug.Log (msg.Payload);
 		//Debug.Log (player);
-
-		string valueString = "";
-		msg.Payload.GetField (ref valueString, "value");
-		float speed = float.Parse (valueString);
-		if (float.IsNaN(speed)) {
-			speed = 0.0f;
-		}
+		
+		float speed = msg.Payload.GetField ("value").f;
 
 		if (player != null) 
 		{
@@ -313,7 +308,7 @@ public class BoatUserControl : MonoBehaviour
 		//Debug.Log (msg.Payload);
 
 		string newRole = "";
-		msg.Payload.GetField (ref newRole, "value");
+		newRole = msg.Payload.GetField ("value").str;
 		if (newRole == "navigator") {
 			currentMode = ControlMode.NAVANDPADDLER;
 			player.role = PlayerRole.NAVIGATOR;
@@ -336,15 +331,8 @@ public class BoatUserControl : MonoBehaviour
 	{
 		int controllerIndex = msg.ControllerSource;     
 		Player player = m_players.Find (x => x.ControllerIndex == controllerIndex);
-		
-		//Debug.Log (msg.Payload);
 
-		string rotationString = "";
-		msg.Payload.GetField (ref rotationString, "value");
-		float rotation = float.Parse (rotationString);
-		if (float.IsNaN(rotation)) {
-			rotation = 0.0f;
-		}
+		float rotation = msg.Payload.GetField("value").f;
 
 		if (player != null) 
 		{

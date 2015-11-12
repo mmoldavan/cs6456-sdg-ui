@@ -88,6 +88,7 @@ function initController() {
 function updateDirection(amount) {
 	var newPosition = applyBounds(parseFloat(currPosition) + parseFloat(amount), 1.0);
 	newPosition = newPosition.toFixed(1);
+	newPosition = parseFloat(newPosition);
 	if (newPosition != currPosition) {
 		currPosition = newPosition;
 		var sendNotification = {};
