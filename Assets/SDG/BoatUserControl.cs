@@ -7,8 +7,7 @@ using BladeCast;
 public class BoatUserControl : MonoBehaviour 
 {
 	//Vars set in Unity
-	public float speed;
-	public float torque;
+	public float jumpForce = 50f;
 	public float keyboardInputSpeed = 1.0f;
 	public bool enableKeyboardInput;
 	public UIController uiController;
@@ -17,6 +16,7 @@ public class BoatUserControl : MonoBehaviour
 	private Animator leftOarAnimator, rightOarAnimator, boatAnimator;
 	private Transform rutter;
 	private ControlMode controlMode;
+	private Rigidbody rigidbody;
 
 	//Input Handlers
 	private PaddleInput paddleInput;
@@ -83,11 +83,36 @@ public class BoatUserControl : MonoBehaviour
 	}
 
 	private class JumpInput: PendingInput {
+		float jumpRecieveBuffer = 0.5f;
+
+		private BoatUserControl userControl;
+
 		public JumpInput(BoatUserControl userControl){
+			this.active = false;
+			this.userControl = userControl;
+
 		}
 		
 		public void motionReceived(PlayerRole player, float speed) {
-			
+			if (active) {
+				if (player < PlayerRole.NAVIGATOR && player != initiatingPlayer) {
+					if ( pressTime < Time.time + jumpRecieveBuffer) {
+						//userControl.boatAnimator.SetTrigger("Jump");
+						userControl.rigidbody.AddForce(Vector3.up * userControl.jumpForce,ForceMode.Impulse);
+						active = false;
+					}
+					else {
+						pressTime = Time.time;
+						initiatingPlayer = player;
+						active = true;
+					}
+				}
+
+			} else {
+				pressTime = Time.time;
+				initiatingPlayer = player;
+				active = true;
+			}
 		}
 		public void update() {
 			
@@ -178,6 +203,7 @@ public class BoatUserControl : MonoBehaviour
 			float lerpTime = timeSinceTranstitionStart / animationTransitionTime;
 			if(lerpTime >= 1.0f || currentForwardSpeed == nextForwardSpeed) {
 				boatAnimator.SetFloat("ForwardSpeed", nextForwardSpeed);
+
 				currentForwardSpeed = nextForwardSpeed;
 				nextForwardSpeed = -1.0f;
 			}
@@ -189,7 +215,9 @@ public class BoatUserControl : MonoBehaviour
 					animationSpeed = 0.09f;
 				}
 				boatAnimator.SetFloat ("ForwardSpeed", newForwardValue);
-				boatAnimator.SetFloat ("AnimationSpeed", animationSpeed);
+				if (boatAnimator.GetFloat("AnimationSpeed") < animationSpeed) {
+					boatAnimator.SetFloat ("AnimationSpeed", animationSpeed);
+				}
 			}
 		}
 	}
@@ -210,6 +238,7 @@ public class BoatUserControl : MonoBehaviour
 		rightOarAnimator = transform.Find("RightOar").GetComponent<Animator> ();
 		boatAnimator = GetComponent<Animator> ();
 		rutter = transform.Find ("Rutter").transform;
+		rigidbody = this.GetComponent<Rigidbody> ();
 
 		//Set up EAPathFinder listeners
 		BCMessenger.Instance.RegisterListener("connect", 0, this.gameObject, "HandleConnection");      
@@ -248,8 +277,17 @@ public class BoatUserControl : MonoBehaviour
 			if(Input.GetKeyDown(KeyCode.M)) {
 				paddleInput.motionReceived(PlayerRole.RIGHTPADDLER, keyboardInputSpeed);
 			}
+			if(Input.GetKeyDown(KeyCode.J)) {
+				jumpInput.motionReceived(PlayerRole.LEFTPADDLER, keyboardInputSpeed);
+			}
+			if(Input.GetKeyDown(KeyCode.K)) {
+				jumpInput.motionReceived(PlayerRole.RIGHTPADDLER, keyboardInputSpeed);
+			}
 			if(Input.GetKeyDown(KeyCode.B)) {
 				paddleInput.motionReceived(PlayerRole.FULLPADDLER, keyboardInputSpeed);
+			}
+			if(Input.GetKeyDown(KeyCode.H)) {
+				jumpInput.motionReceived(PlayerRole.FULLPADDLER, keyboardInputSpeed);
 			}
 			if(Input.GetKeyDown(KeyCode.R)) { //Fast Reload
 				Application.LoadLevel (Application.loadedLevelName);
@@ -296,7 +334,7 @@ public class BoatUserControl : MonoBehaviour
 		
 		if (player != null) 
 		{
-			paddleInput.motionReceived(player.role, 1.0f);
+			jumpInput.motionReceived(player.role, 1.0f);
 		}
 	}
 
