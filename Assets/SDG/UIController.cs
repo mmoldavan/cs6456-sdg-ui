@@ -38,11 +38,10 @@ public class UIController : MonoBehaviour {
 	}
 
 	public class ActionTextFader : TextFader {
-		public ActionTextFader(Text element, int valueIndex, float fadeTime, float startTime) : base(element, fadeTime, startTime) {
-			string[] possibleTextValues = {"Slow","Paddle","Fast"};
+		public ActionTextFader(Text element, string textValue, float fadeTime, float startTime) : base(element, fadeTime, startTime) {
 	
 			element.transform.eulerAngles = new Vector3(0f, 0f, Random.Range(-10f,10f));
-			element.text = possibleTextValues[valueIndex];
+			element.text = textValue;
 		}
 
 
@@ -66,19 +65,35 @@ public class UIController : MonoBehaviour {
 		uiCanvas = GameObject.Find ("Canvas").GetComponent<Canvas> ();
 	}
 	
-	public void addActionTextFader(string textKey, float paddleSpeed, float startTime, float fadeTime) {
+	public void addPaddleActionTextFader(string textKey, float paddleSpeed, float startTime, float fadeTime) {
 		Text element = uiCanvas.transform.Find (textKey).GetComponent<Text> ();
 		element.enabled = true;
-		int textIndex;
+		string textVal;
 		if (paddleSpeed <= .5) {
-			textIndex = 0;
+			textVal = "slow";
 		} else if (paddleSpeed > .5 && paddleSpeed <= .75) {
-			textIndex = 1;
+			textVal = "paddling";
 		} else {
-			textIndex = 2;
+			textVal = "fast";
 		}
 	
-		TextFader fader = new ActionTextFader (element, textIndex, fadeTime, startTime);
+		TextFader fader = new ActionTextFader (element, textVal, fadeTime, startTime);
+		currentFaders.Add (fader);
+	}
+	public void addJumpActionTextFader(string textKey, string jumpState, float startTime, float fadeTime) {
+		Text element = uiCanvas.transform.Find (textKey).GetComponent<Text> ();
+		element.enabled = true;
+		string otherPlayer = textKey == "LeftPlayer/LeftPaddle" ? "P2" : "P1";
+		string textVal;
+		if (jumpState.Equals("init")) {
+			textVal = "jump start";
+		} else if (jumpState.Equals("receive")) {
+			textVal = otherPlayer + " jump";
+		} else {
+			textVal = "jumping!";
+		}
+		
+		TextFader fader = new ActionTextFader (element, textVal, fadeTime, startTime);
 		currentFaders.Add (fader);
 	}
 
@@ -87,6 +102,11 @@ public class UIController : MonoBehaviour {
 		element.enabled = true;
 		TextFader fader = new TextFader (element, fadeTime, startTime);
 		currentFaders.Add (fader);
+	}
+
+	public void changeRoleText(string textKey, string newRole) {
+		Debug.Log (textKey + " " + newRole);
+		uiCanvas.transform.Find (textKey+"/PlayerRole").GetComponent<Text> ().text = "Role: "+ newRole;
 	}
 
 	public void Update() {

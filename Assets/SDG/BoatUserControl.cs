@@ -44,6 +44,8 @@ public class BoatUserControl : MonoBehaviour
 		NAVANDPADDLER = 2
 	}
 
+	public enum JumpState { INITIATOR, COMPLETE };
+	
 	private class PendingInput {
 		public float pressTime;
 		public PlayerRole initiatingPlayer;
@@ -92,20 +94,20 @@ public class BoatUserControl : MonoBehaviour
 			this.userControl = userControl;
 
 		}
-		
+
 		public void motionReceived(PlayerRole player, float speed) {
 			if (active) {
 				if (player < PlayerRole.NAVIGATOR && player != initiatingPlayer) {
 					if ( pressTime < Time.time + jumpRecieveBuffer) {
 						userControl.leftOarAnimator.SetTrigger("Jump");
 						userControl.rightOarAnimator.SetTrigger("Jump");
-						userControl.notifyUIofJump(player, 0.5f);
+						userControl.notifyUIofJump(player, JumpState.COMPLETE, 0.5f);
 						active = false;
 					}
 					else {
 						pressTime = Time.time;
 						initiatingPlayer = player;
-						userControl.notifyUIofJump(player, 0.5f);
+						userControl.notifyUIofJump(player, JumpState.INITIATOR, 0.5f);
 						active = true;
 					}
 				}
@@ -113,7 +115,7 @@ public class BoatUserControl : MonoBehaviour
 			} else {
 				pressTime = Time.time;
 				initiatingPlayer = player;
-				userControl.notifyUIofJump(player, 0.5f);
+				userControl.notifyUIofJump(player, JumpState.INITIATOR, 0.5f);
 				active = true;
 			}
 		}
@@ -239,17 +241,24 @@ public class BoatUserControl : MonoBehaviour
 
 	public void notifyUIofPaddle(PlayerRole player, float paddleSpeed, float buffer) {
 		if (player == PlayerRole.LEFTPADDLER) {
-			uiController.addActionTextFader ("LeftPlayer/LeftPaddle", paddleSpeed, Time.time, buffer);
+			uiController.addPaddleActionTextFader ("LeftPlayer/LeftPaddle", paddleSpeed, Time.time, buffer);
 		} else {
-			uiController.addActionTextFader ("RightPlayer/RightPaddle", paddleSpeed, Time.time, buffer);
+			uiController.addPaddleActionTextFader ("RightPlayer/RightPaddle", paddleSpeed, Time.time, buffer);
 		}
 	}
 
-	public void notifyUIofJump(PlayerRole player, float buffer) {
-		if (player == PlayerRole.LEFTPADDLER) {
-			uiController.addActionTextFader ("LeftPlayer/LeftPaddle", Time.time, buffer);
+	public void notifyUIofJump(PlayerRole player, JumpState jState, float buffer) {
+		if (jState == JumpState.INITIATOR) {
+			if (player == PlayerRole.LEFTPADDLER) {
+				uiController.addJumpActionTextFader ("LeftPlayer/LeftPaddle", "init", Time.time, 1f);
+				uiController.addJumpActionTextFader ("RightPlayer/RightPaddle", "receive", Time.time, 1f);
+			} else {
+				uiController.addJumpActionTextFader ("RightPlayer/RightPaddle", "init", Time.time, 1f);
+				uiController.addJumpActionTextFader ("LeftPlayer/LeftPaddle", "receive", Time.time, 1f);
+			}
 		} else {
-			uiController.addActionTextFader ("RightPlayer/RightPaddle", Time.time, buffer);
+			uiController.addJumpActionTextFader("LeftPlayer/LeftPaddle", "complete", Time.time, buffer);
+			uiController.addJumpActionTextFader ("RightPlayer/RightPaddle", "complete", Time.time, buffer);
 		}
 	}
 
@@ -376,6 +385,8 @@ public class BoatUserControl : MonoBehaviour
 			Player player2 = m_players.Find (x => x.role <= PlayerRole.FULLPADDLER);
 			if(player2 != null) {
 				player2.role = PlayerRole.FULLPADDLER;
+				uiController.changeRoleText("RightPlayer", "navigator");
+				uiController.changeRoleText("LeftPlayer", "paddler");
 			}
 		} else {
 			currentMode = ControlMode.TWOPADDLER;
