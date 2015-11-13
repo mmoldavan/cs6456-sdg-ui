@@ -98,7 +98,7 @@ public class BoatUserControl : MonoBehaviour
 		public void motionReceived(PlayerRole player, float speed) {
 			if (active) {
 				if (player < PlayerRole.NAVIGATOR && player != initiatingPlayer) {
-					if ( pressTime < Time.time + jumpRecieveBuffer) {
+					if ( pressTime > Time.time - jumpRecieveBuffer) {
 						userControl.leftOarAnimator.SetTrigger("Jump");
 						userControl.rightOarAnimator.SetTrigger("Jump");
 						userControl.notifyUIofJump(player, JumpState.COMPLETE, 0.5f);
