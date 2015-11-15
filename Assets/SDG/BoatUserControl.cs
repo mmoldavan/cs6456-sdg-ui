@@ -85,7 +85,7 @@ public class BoatUserControl : MonoBehaviour
 	}
 
 	private class JumpInput: PendingInput {
-		float jumpRecieveBuffer = 0.5f;
+		float jumpRecieveBuffer = 1f;
 
 		private BoatUserControl userControl;
 
@@ -96,28 +96,40 @@ public class BoatUserControl : MonoBehaviour
 		}
 
 		public void motionReceived(PlayerRole player, float speed) {
-			if (active) {
-				if (player < PlayerRole.NAVIGATOR && player != initiatingPlayer) {
+			if (active) { //jump is active
+				if (player != initiatingPlayer) {
 					if ( pressTime > Time.time - jumpRecieveBuffer) {
+						//complete jump
 						userControl.leftOarAnimator.SetTrigger("Jump");
 						userControl.rightOarAnimator.SetTrigger("Jump");
-						userControl.notifyUIofJump(player, JumpState.COMPLETE, 0.5f);
+						userControl.notifyUIofJump(player, JumpState.COMPLETE, jumpRecieveBuffer);
 						active = false;
 					}
 					else {
-						pressTime = Time.time;
-						initiatingPlayer = player;
-						userControl.notifyUIofJump(player, JumpState.INITIATOR, 0.5f);
-						active = true;
+						initiateJump(player);
 					}
+				} else {
+					//same player has reinitiated a jump
+					initiateJump(player);
 				}
-
 			} else {
-				pressTime = Time.time;
-				initiatingPlayer = player;
-				userControl.notifyUIofJump(player, JumpState.INITIATOR, 0.5f);
-				active = true;
+				//first jump initiation
+				initiateJump(player);
 			}
+		}
+		private void initiateJump(PlayerRole player) {
+			pressTime = Time.time;
+			initiatingPlayer = player;
+			userControl.notifyUIofJump(player, JumpState.INITIATOR, jumpRecieveBuffer);
+			active = true;
+			int sender = 1;
+			int receiver = 2;
+			if (player == PlayerRole.RIGHTPADDLER || player == PlayerRole.NAVIGATOR) {
+				sender = 2;
+				receiver = 1;
+			}
+			ControllerMessage jumpMsg = new ControllerMessage(sender, receiver, "jump_initiated", new JSONObject());
+			BCMessenger.Instance.SendToListeners(jumpMsg);
 		}
 		public void update() {
 			
@@ -250,11 +262,11 @@ public class BoatUserControl : MonoBehaviour
 	public void notifyUIofJump(PlayerRole player, JumpState jState, float buffer) {
 		if (jState == JumpState.INITIATOR) {
 			if (player == PlayerRole.LEFTPADDLER) {
-				uiController.addJumpActionTextFader ("LeftPlayer/LeftPaddle", "init", Time.time, 1f);
-				uiController.addJumpActionTextFader ("RightPlayer/RightPaddle", "receive", Time.time, 1f);
+				uiController.addJumpActionTextFader ("LeftPlayer/LeftPaddle", "init", Time.time, buffer);
+				uiController.addJumpActionTextFader ("RightPlayer/RightPaddle", "receive", Time.time, buffer);
 			} else {
-				uiController.addJumpActionTextFader ("RightPlayer/RightPaddle", "init", Time.time, 1f);
-				uiController.addJumpActionTextFader ("LeftPlayer/LeftPaddle", "receive", Time.time, 1f);
+				uiController.addJumpActionTextFader ("RightPlayer/RightPaddle", "init", Time.time, buffer);
+				uiController.addJumpActionTextFader ("LeftPlayer/LeftPaddle", "receive", Time.time, buffer);
 			}
 		} else {
 			uiController.addJumpActionTextFader("LeftPlayer/LeftPaddle", "complete", Time.time, buffer);
@@ -363,8 +375,9 @@ public class BoatUserControl : MonoBehaviour
 		Player player = m_players.Find (x => x.ControllerIndex == controllerIndex);
 		
 		Debug.Log (msg.Payload);
+		string jumpAction = msg.Payload.GetField ("value").str;
 		
-		if (player != null) 
+		if (player != null && jumpAction == "start") 
 		{
 			jumpInput.motionReceived(player.role, 1.0f);
 		}

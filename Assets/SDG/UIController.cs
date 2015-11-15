@@ -86,7 +86,7 @@ public class UIController : MonoBehaviour {
 		string otherPlayer = textKey == "LeftPlayer/LeftPaddle" ? "P2" : "P1";
 		string textVal;
 		if (jumpState.Equals("init")) {
-			textVal = "jump start";
+			textVal = "jump started";
 		} else if (jumpState.Equals("receive")) {
 			textVal = otherPlayer + " jump";
 		} else {
