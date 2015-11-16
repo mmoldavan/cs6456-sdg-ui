@@ -158,15 +158,8 @@ public class BoatUserControl : MonoBehaviour
 		if (animationSpeed < 0.1f) {
 			animationSpeed = 0.09f;
 		}
-		/*
-		if (leftPaddleSpeed < 0.1f) {
-			leftPaddleSpeed = 0.09f; 
-		}
-		if (rightPaddleSpeed < 0.1f) {
-			rightPaddleSpeed = 0.09f; 
-		}*/
 
-		boatAnimator.SetFloat ("ForwardSpeed", currentForwardSpeed);
+		//boatAnimator.SetFloat ("ForwardSpeed", currentForwardSpeed);
 		boatAnimator.SetFloat ("RotationSpeed", currentRotationSpeed);
 		boatAnimator.SetFloat ("AnimationSpeed", animationSpeed);
 		leftOarAnimator.SetFloat ("RowSpeed", leftPaddleSpeed);
@@ -222,31 +215,42 @@ public class BoatUserControl : MonoBehaviour
 	}
 
 	public void updateForwardSpeed() {
+		currentForwardSpeed = boatAnimator.GetFloat ("ForwardSpeed");
 		nextForwardSpeed = (leftPaddleSpeed + rightPaddleSpeed) / 2;
+		//Debug.Log ("left speed:" + leftPaddleSpeed + "; right speed:" + rightPaddleSpeed + "; forwardNext:"+nextForwardSpeed +"; currentForward:"+currentForwardSpeed);
 		forwardTransitionStartTime = Time.time;
 	}
 
 	public void lerpForwardSpeedTransition() {
-		if (nextForwardSpeed >= 0.0f) {
-			float timeSinceTranstitionStart = Time.time - forwardTransitionStartTime;
-			float lerpTime = timeSinceTranstitionStart / animationTransitionTime;
-			if(lerpTime >= 1.0f || currentForwardSpeed == nextForwardSpeed) {
-				boatAnimator.SetFloat("ForwardSpeed", nextForwardSpeed);
+		if (nextForwardSpeed > currentForwardSpeed) {
+			//Acceleration should be fast
+			lerpItForward(0.25f);
+		}
+		else if (nextForwardSpeed >= 0.0f) {
+			//deceleration should coast a little.
+			lerpItForward(animationTransitionTime);
+		}
+	}
 
-				currentForwardSpeed = nextForwardSpeed;
-				nextForwardSpeed = -1.0f;
+	public void lerpItForward(float lerpTransitionTime) {
+		float timeSinceTranstitionStart = Time.time - forwardTransitionStartTime;
+		float lerpTime = timeSinceTranstitionStart / lerpTransitionTime;
+		if(lerpTime >= 1.0f || currentForwardSpeed == nextForwardSpeed) {
+			boatAnimator.SetFloat("ForwardSpeed", nextForwardSpeed);
+			
+			currentForwardSpeed = nextForwardSpeed;
+			nextForwardSpeed = -1.0f;
+		}
+		else {
+			float newForwardValue = Mathf.Lerp(currentForwardSpeed,nextForwardSpeed,lerpTime);
+			float absRotationSpeed = Mathf.Abs (currentRotationSpeed);
+			float animationSpeed = Mathf.Max (newForwardValue, absRotationSpeed);
+			if (animationSpeed < 0.1f) {
+				animationSpeed = 0.09f;
 			}
-			else {
-				float newForwardValue = Mathf.Lerp(currentForwardSpeed,nextForwardSpeed,lerpTime);
-				float absRotationSpeed = Mathf.Abs (currentRotationSpeed);
-				float animationSpeed = Mathf.Max (newForwardValue, absRotationSpeed);
-				if (animationSpeed < 0.1f) {
-					animationSpeed = 0.09f;
-				}
-				boatAnimator.SetFloat ("ForwardSpeed", newForwardValue);
-				if (boatAnimator.GetFloat("AnimationSpeed") < animationSpeed) {
-					boatAnimator.SetFloat ("AnimationSpeed", animationSpeed);
-				}
+			boatAnimator.SetFloat ("ForwardSpeed", newForwardValue);
+			if (boatAnimator.GetFloat("AnimationSpeed") < animationSpeed) {
+				boatAnimator.SetFloat ("AnimationSpeed", animationSpeed);
 			}
 		}
 	}
