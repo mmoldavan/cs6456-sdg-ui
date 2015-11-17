@@ -1,6 +1,6 @@
 /* 
 * RUDDER CONTROLLER - COMPLEMENTARY, PHYSICAL + TOUCH
-* Created by Rachel Sheketoff referencing EA PATHFINDERS example
+* Referencing EA PATHFINDERS example
 * EA PATHFINDERS API
 * Copyright (C) 2015 Electronic Arts Inc.  All rights reserved. 
 * This software is solely licensed pursuant to the Hackathon License Agreement,

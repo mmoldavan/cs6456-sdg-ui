@@ -1,6 +1,6 @@
 /* 
 * PADDLE CONTROLLER - SYNERGY, PHYSICAL
-* Created by Rachel Sheketoff referencing EA PATHFINDERS example
+* Referencing EA PATHFINDERS example
 * EA PATHFINDERS API
 * Copyright (C) 2015 Electronic Arts Inc.  All rights reserved. 
 * This software is solely licensed pursuant to the Hackathon License Agreement,
@@ -48,6 +48,7 @@ function initController() {
 	$('#player').text("P"+player);
 	
 	//set up orientation event listener, determine vibration support
+	//thanks to pointers from http://www.html5rocks.com/en/tutorials/device/orientation/
 	if (window.DeviceOrientationEvent) {
 		$('#orientStatus').text("Device Orientation is supported");
 		window.addEventListener('deviceorientation', deviceOrientHandler, false);

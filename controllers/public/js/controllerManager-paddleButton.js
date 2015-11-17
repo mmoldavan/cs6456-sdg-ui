@@ -1,6 +1,6 @@
 /* 
 * PADDLE CONTROLLER - COMPLEMENTARY, TOUCH
-* Created by Rachel Sheketoff referencing EA PATHFINDERS example
+* Referencing EA PATHFINDERS example
 * EA PATHFINDERS API
 * Copyright (C) 2015 Electronic Arts Inc.  All rights reserved. 
 * This software is solely licensed pursuant to the Hackathon License Agreement,
@@ -88,12 +88,11 @@ function execActionType(whichButton) {
 		}
 		else if (whichButton == 'down' && strokeInit == true) {
 			var moveDuration = Date.now() - strokeInitTime;
-			//alert(moveDuration);
 			var moveSpeed = moveDuration/gestureMaxDuration;
 			if (moveSpeed < 1) { //ignore if it took longer than max duration
 				var moveSpeedCat;
 				if (moveSpeed >= .5)
-					moveSpeedCat = .5;
+					moveSpeedCat = .35;
 				else if (moveSpeed < .5 && moveSpeed >= .15)
 					moveSpeedCat = .75;
 				else
