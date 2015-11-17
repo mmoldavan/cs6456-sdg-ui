@@ -278,6 +278,16 @@ public class BoatUserControl : MonoBehaviour
 		}
 	}
 
+	public void keepBoatUpright() {
+		//Vector3 rotation = this.transform.rotation.eulerAngles;
+		Quaternion rot = rigidbody.rotation;
+		rot[0] = 0; //null rotation X
+		rot[2] = 0; //null rotation Z
+		rigidbody.rotation = rot;
+		//this.transform.rotation.eulerAngles = rotation;
+
+	}
+
 	//Game Init
 	void Start()
 	{  
@@ -313,7 +323,7 @@ public class BoatUserControl : MonoBehaviour
 		currentMode = ControlMode.TWOPADDLER;
 	}
 	
-	// Update is called once per frame
+	// Update is called once per rendered frame
 	void Update () 
 	{
 		jumpInput.update ();
@@ -341,8 +351,12 @@ public class BoatUserControl : MonoBehaviour
 				Application.LoadLevel (Application.loadedLevelName);
 			}
 		}
+	}
 
+	// Physics update at fixed intervals
+	public void FixedUpdate () {
 		lerpForwardSpeedTransition ();
+		keepBoatUpright ();
 	}
 	
 	// message handlers...
